@@ -64,3 +64,5 @@ GZIP, Deflate and RAW content encodings are supported.
 
 SHA-256 hash of the RAW content is concatenated with the last modification date
 of the webresource file.
+
+[![Analytics](https://ga-beacon.appspot.com/UA-15041869-4/everit-org/webresource)](https://github.com/igrigorik/ga-beacon)
