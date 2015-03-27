@@ -1,37 +1,49 @@
-/**
- * This file is part of Everit - WebResource.
- *
- * Everit - WebResource is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Everit - WebResource is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Everit - WebResource.  If not, see <http://www.gnu.org/licenses/>.
- */
 package org.everit.osgi.webresource;
 
+/**
+ * Constants to help the usage of the webresource library.
+ */
 public final class WebResourceConstants {
 
-    public static final String CAPABILITY_ATTRIBUTE_LIBRARY_PREFIX = "libraryPrefix";
+  /**
+   * Prefix of the library which the WebResources should be provided with. Each subfolder of
+   * {@link #CAPABILITY_ATTRIBUTE_RESOURCE_FOLDER} will be appended to the value of library prefix.
+   */
+  public static final String CAPABILITY_ATTRIBUTE_LIBRARY_PREFIX = "libraryPrefix";
 
-    public static final String CAPABILITY_ATTRIBUTE_RESOURCE_FOLDER = "resourceFolder";
+  /**
+   * The folder in the bundle that contains the {@link WebResource}s. The folder will be scanned
+   * recursively.
+   */
+  public static final String CAPABILITY_ATTRIBUTE_RESOURCE_FOLDER = "resourceFolder";
 
-    public static final String CAPABILITY_ATTRIBUTE_VERSION = "version";
+  /**
+   * The version of the {@link WebResource}s that are provided by the capability.
+   */
+  public static final String CAPABILITY_ATTRIBUTE_VERSION = "version";
 
-    public static final String CAPABILITY_DIRECTIVE_FILTER = "filter";
+  /**
+   * Namespace of the {@link WebResource} capability.
+   */
+  public static final String CAPABILITY_NAMESPACE = "everit.webresource";
 
-    public static final String CAPABILITY_NAMESPACE = "everit.webresource";
+  /**
+   * Name of the unknown mime type.
+   */
+  public static final String MIME_TYPE_UNKNOWN = "application/octet-stream";
 
-    public static final String MIME_TYPE_UNKNOWN = "application/octet-stream";
+  /**
+   * Name of version range parameter on webconsole.
+   */
+  public static final String REQUEST_PARAM_VERSION_RANGE = "version";
 
-    public static final String PARAM_VERSION = "version";
+  /**
+   * Name of the {@link javax.servlet.ServletContext} attribute that holds the
+   * {@link WebResourceURIResolver} if the WebResource Servlet is installed within the same
+   * ServletContext.
+   */
+  public static final String SERVLET_CONTEXT_ATTR_URI_RESOLVER = "WebResourceURIResolver";
 
-    private WebResourceConstants() {
-    }
+  private WebResourceConstants() {
+  }
 }

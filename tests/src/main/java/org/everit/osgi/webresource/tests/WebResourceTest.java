@@ -1,19 +1,3 @@
-/**
- * This file is part of Everit - WebResource Tests.
- *
- * Everit - WebResource Tests is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Everit - WebResource Tests is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Everit - WebResource Tests.  If not, see <http://www.gnu.org/licenses/>.
- */
 package org.everit.osgi.webresource.tests;
 
 import javax.servlet.Servlet;
@@ -36,50 +20,50 @@ import org.osgi.framework.ServiceRegistration;
 
 @Component(immediate = true, policy = ConfigurationPolicy.OPTIONAL)
 @Properties({
-        @Property(name = TestRunnerConstants.SERVICE_PROPERTY_TESTRUNNER_ENGINE_TYPE, value = "junit4"),
-        @Property(name = TestRunnerConstants.SERVICE_PROPERTY_TEST_ID, value = "WebResourceTest")
+    @Property(name = TestRunnerConstants.SERVICE_PROPERTY_TESTRUNNER_ENGINE_TYPE, value = "junit4"),
+    @Property(name = TestRunnerConstants.SERVICE_PROPERTY_TEST_ID, value = "WebResourceTest")
 })
 @Service(value = WebResourceTest.class)
 public class WebResourceTest {
 
-    private Server server;
-    private ServiceRegistration<Servlet> servletSR;
-    @Reference(bind = "setWebResourceServlet", target = "(" + Constants.SERVICE_DESCRIPTION
-            + "=Everit WebResource Servlet)")
-    private Servlet webResourceServlet;
+  private Server server;
+  private ServiceRegistration<Servlet> servletSR;
+  @Reference(bind = "setWebResourceServlet", target = "(" + Constants.SERVICE_DESCRIPTION
+      + "=Everit WebResource Servlet)")
+  private Servlet webResourceServlet;
 
-    @Activate
-    public void activate(BundleContext context) {
-        server = new Server(8888);
-        ServletContextHandler servletContextHandler = new ServletContextHandler();
-        server.setHandler(servletContextHandler);
+  @Activate
+  public void activate(final BundleContext context) {
+    server = new Server(8888);
+    ServletContextHandler servletContextHandler = new ServletContextHandler();
+    server.setHandler(servletContextHandler);
 
-        servletContextHandler.addServlet(new ServletHolder("myServlet", webResourceServlet), "/*");
+    servletContextHandler.addServlet(new ServletHolder("myServlet", webResourceServlet), "/*");
 
-        try {
-            server.start();
-            System.out.println("JETTY STARTED AT PORT " + server.getConnectors()[0].getPort());
-        } catch (Exception e) {
-            try {
-                server.stop();
-            } catch (Exception e1) {
-                e.addSuppressed(e1);
-            }
-            throw new RuntimeException(e);
-        }
-
+    try {
+      server.start();
+      System.out.println("JETTY STARTED AT PORT " + server.getConnectors()[0].getPort());
+    } catch (Exception e) {
+      try {
+        server.stop();
+      } catch (Exception e1) {
+        e.addSuppressed(e1);
+      }
+      throw new RuntimeException(e);
     }
 
-    @Deactivate
-    public void deactivate() {
-        try {
-            server.stop();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+  }
 
-    public void setWebResourceServlet(Servlet webResourceServlet) {
-        this.webResourceServlet = webResourceServlet;
+  @Deactivate
+  public void deactivate() {
+    try {
+      server.stop();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
+  }
+
+  public void setWebResourceServlet(final Servlet webResourceServlet) {
+    this.webResourceServlet = webResourceServlet;
+  }
 }

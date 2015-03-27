@@ -1,19 +1,3 @@
-/**
- * This file is part of Everit - WebResource.
- *
- * Everit - WebResource is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Everit - WebResource is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Everit - WebResource.  If not, see <http://www.gnu.org/licenses/>.
- */
 package org.everit.osgi.webresource;
 
 import java.io.IOException;
@@ -23,26 +7,77 @@ import java.util.Map;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Version;
 
+/**
+ * A WebResource is a file that is accessible for everyone can access. E.g.: CSS, JS and image
+ * files.
+ */
 public interface WebResource {
 
-    Bundle getBundle();
+  /**
+   * The bundle that offers the {@link WebResource}.
+   */
+  Bundle getBundle();
 
-    Map<ContentEncoding, Integer> getCacheState();
+  /**
+   * After a {@link WebResource} is requested with a {@link ContentEncoding}, the content is cached
+   * in the memory.
+   *
+   * @return The size that is occupied by the {@link WebResource} in the cache for each
+   *         {@link ContentEncoding}.
+   */
+  Map<ContentEncoding, Integer> getCacheState();
 
-    long getContentLength(ContentEncoding contentEncoding);
+  /**
+   * The length of the content of the {@link WebResource} in the specific {@link ContentEncoding}.
+   *
+   * @param contentEncoding
+   *          The {@link ContentEncoding} of the {@link WebResource}.
+   * @return the length of the content in bytes.
+   */
+  long getContentLength(ContentEncoding contentEncoding);
 
-    String getContentType();
+  /**
+   * The content type of the {@link WebResource}.
+   */
+  String getContentType();
 
-    String getEtag();
+  /**
+   * The calculated ETag of the {@link WebResource} that can be used to save bandwidth.
+   */
+  String getETag();
 
-    String getFileName();
+  /**
+   * The fileName of the {@link WebResource}.
+   */
+  String getFileName();
 
-    InputStream getInputStream(ContentEncoding contentEncoding, int beginIndex) throws IOException;
+  /**
+   * Creates a new {@link InputStream} to read the content of the {@link WebResource}.
+   *
+   * @param contentEncoding
+   *          The {@link ContentEncoding} that we should get the data with.
+   * @param beginIndex
+   *          The beginning inded of the content.
+   * @return The generated {@link InputStream}.
+   * @throws IOException
+   *           if a read error occures.
+   */
+  InputStream getInputStream(ContentEncoding contentEncoding, int beginIndex) throws IOException;
 
-    long getLastModified();
+  /**
+   * The date when the {@link WebResource} was last modified. This is normally the date of the
+   * resource within the bundle.
+   */
+  long getLastModified();
 
-    String getLibrary();
+  /**
+   * The name of the library of the {@link WebResource}. E.g.: jquery.
+   */
+  String getLibrary();
 
-    Version getVersion();
+  /**
+   * The exact version of the {@link WebResource}.
+   */
+  Version getVersion();
 
 }
