@@ -2,6 +2,7 @@ package org.everit.osgi.webresource.internal;
 
 import java.util.Collection;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.Servlet;
@@ -14,11 +15,13 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.everit.osgi.webresource.WebResourceURIGenerator;
+
 /**
  * A Servlet that can serve {@link org.everit.osgi.webresource.WebResource}s and is registered as an
  * OSGi service. The scope of the OSGi service is prototype. Each time the {@link Servlet} is
  * initialized within a {@link ServletContext}, an attribute of
- * {@link org.everit.osgi.webresource.WebResourceURIResolver} with the key
+ * {@link org.everit.osgi.webresource.WebResourceURIGenerator} with the key
  * {@value org.everit.osgi.webresource.WebResourceConstants#SERVLET_CONTEXT_ATTR_URI_RESOLVER} is
  * registered.
  */
@@ -31,6 +34,8 @@ public class WebResourceServlet implements Servlet {
   private final AtomicInteger initCount = new AtomicInteger();
 
   private ServletConfig servletConfig;
+
+  private WebResourceURIGenerator uriGenerator;
 
   private final WebResourceUtil webResourceUtil;
 
@@ -45,7 +50,24 @@ public class WebResourceServlet implements Servlet {
       throw new IllegalStateException(
           "WebResource servlet was destroyed more times than it was initialized");
     }
-    // TODO remove the URI resolver from the servlet context attributes.
+
+    ConcurrentLinkedQueue<WebResourceURIGenerator> uriGenerators = getOrCreateURIGeneratorQueue();
+    uriGenerators.remove(uriGenerator);
+  }
+
+  private ConcurrentLinkedQueue<WebResourceURIGenerator> getOrCreateURIGeneratorQueue() {
+    ServletContext servletContext = getServletConfig().getServletContext();
+    String attributeName = WebResourceURIGenerator.class.getName();
+
+    @SuppressWarnings("unchecked")
+    ConcurrentLinkedQueue<WebResourceURIGenerator> uriGeneratorQueue =
+        (ConcurrentLinkedQueue<WebResourceURIGenerator>) servletContext.getAttribute(attributeName);
+
+    if (uriGeneratorQueue == null) {
+      uriGeneratorQueue = new ConcurrentLinkedQueue<>();
+      servletContext.setAttribute(attributeName, uriGeneratorQueue);
+    }
+    return uriGeneratorQueue;
   }
 
   @Override

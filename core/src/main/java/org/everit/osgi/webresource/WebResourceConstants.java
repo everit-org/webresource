@@ -37,13 +37,6 @@ public final class WebResourceConstants {
    */
   public static final String REQUEST_PARAM_VERSION_RANGE = "version";
 
-  /**
-   * Name of the {@link javax.servlet.ServletContext} attribute that holds the
-   * {@link WebResourceURIResolver} if the WebResource Servlet is installed within the same
-   * ServletContext.
-   */
-  public static final String SERVLET_CONTEXT_ATTR_URI_RESOLVER = "WebResourceURIResolver";
-
   private WebResourceConstants() {
   }
 }
