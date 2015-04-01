@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2011 Everit Kft. (http://www.everit.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.everit.osgi.webresource.internal;
 
 import java.io.ByteArrayInputStream;
@@ -10,6 +25,7 @@ import java.math.BigInteger;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
@@ -187,8 +203,8 @@ public class WebResourceImpl implements WebResource {
   public InputStream getInputStream(final ContentEncoding contentEncoding, final int beginIndex)
       throws IOException {
     byte[] contentData = getContentData(contentEncoding);
-    ByteArrayInputStream bin = new ByteArrayInputStream(contentData);
-    bin.skip(beginIndex);
+    ByteArrayInputStream bin = new ByteArrayInputStream(contentData, beginIndex, contentData.length
+        - beginIndex);
     return bin;
   }
 
@@ -265,9 +281,11 @@ public class WebResourceImpl implements WebResource {
   private String resolveETag() {
     try (InputStream in = resourceURL.openStream()) {
       MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-      messageDigest.update(library.getBytes());
-      messageDigest.update(fileName.getBytes());
-      messageDigest.update(version.toString().getBytes());
+
+      Charset defaultCharset = Charset.forName("UTF8");
+      messageDigest.update(library.getBytes(defaultCharset));
+      messageDigest.update(fileName.getBytes(defaultCharset));
+      messageDigest.update(version.toString().getBytes(defaultCharset));
       byte[] buf = new byte[COPY_BUFFER_SIZE];
       int r = in.read(buf);
       while (r > -1) {

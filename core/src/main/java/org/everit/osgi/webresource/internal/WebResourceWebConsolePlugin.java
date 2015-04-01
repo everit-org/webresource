@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2011 Everit Kft. (http://www.everit.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.everit.osgi.webresource.internal;
 
 import java.io.IOException;
@@ -8,21 +23,23 @@ import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.Set;
 
+import javax.servlet.Servlet;
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.everit.osgi.webresource.ContentEncoding;
 import org.everit.osgi.webresource.WebResourceConstants;
+import org.everit.osgi.webresource.util.WebResourceUtil;
 import org.osgi.framework.Version;
 
 /**
  * Webconsole plugin that shows all available webresources and cache data.
  */
-public class WebResourceWebConsolePlugin extends HttpServlet {
-
-  private static final long serialVersionUID = 1L;
+public class WebResourceWebConsolePlugin implements Servlet {
 
   private final WebResourceContainerImpl resourceContainer;
 
@@ -34,20 +51,27 @@ public class WebResourceWebConsolePlugin extends HttpServlet {
     this.webResourceUtil = webResourceUtil;
   }
 
-  @Override
-  protected void doGet(final HttpServletRequest req, final HttpServletResponse resp)
-      throws ServletException,
-      IOException {
-    String pluginRootURI = (String) req.getAttribute("felix.webconsole.pluginRoot");
-    String requestURI = req.getRequestURI();
-    if (requestURI.equals(pluginRootURI)) {
-      respondPluginPage(req, resp, pluginRootURI);
-    } else {
-      String requestPath = requestURI.substring(pluginRootURI.length());
+  private <T> T cast(final Object original) {
+    @SuppressWarnings("unchecked")
+    T result = (T) original;
+    return result;
+  }
 
-      resp.reset();
-      webResourceUtil.findWebResourceAndWriteResponse(req, resp, requestPath);
-    }
+  @Override
+  public void destroy() {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public ServletConfig getServletConfig() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public String getServletInfo() {
+    return "Everit WebResource Webconsole plugin";
   }
 
   private String getStringValue(final Integer value) {
@@ -58,7 +82,13 @@ public class WebResourceWebConsolePlugin extends HttpServlet {
     }
   }
 
-  private void respondPluginPage(final HttpServletRequest req, final HttpServletResponse resp,
+  @Override
+  public void init(final ServletConfig config) throws ServletException {
+    // TODO Auto-generated method stub
+
+  }
+
+  private void respondPluginPage(final ServletResponse resp,
       final String pluginRootURI)
       throws IOException {
     PrintWriter writer = resp.getWriter();
@@ -137,6 +167,24 @@ public class WebResourceWebConsolePlugin extends HttpServlet {
     writer.write("<tr><td class='content'>Sum</td><td class='content'>"
         + format.format(rawCacheSizeSum + deflateCacheSizeSum + gzipCacheSizeSum) + "</td></tr>");
     writer.write("</table>");
+  }
+
+  @Override
+  public void service(final ServletRequest req, final ServletResponse res) throws ServletException,
+      IOException {
+    HttpServletRequest httpReq = cast(req);
+    HttpServletResponse httpRes = cast(res);
+
+    String pluginRootURI = (String) req.getAttribute("felix.webconsole.pluginRoot");
+    String requestURI = httpReq.getRequestURI();
+    if (requestURI.equals(pluginRootURI)) {
+      respondPluginPage(res, pluginRootURI);
+    } else if (requestURI.endsWith(".resource")) {
+      requestURI = requestURI.substring(0, requestURI.length() - ".resource".length());
+      String requestPath = requestURI.substring(pluginRootURI.length());
+
+      webResourceUtil.findWebResourceAndWriteResponse(httpReq, httpRes, requestPath);
+    }
   }
 
   private void writeTableHead(final PrintWriter writer) {

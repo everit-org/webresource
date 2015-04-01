@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2011 Everit Kft. (http://www.everit.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.everit.osgi.webresource.internal;
 
 import java.net.URL;
@@ -9,16 +24,11 @@ import java.util.Map;
 
 import javax.servlet.Servlet;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.ConfigurationPolicy;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Properties;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
 import org.everit.osgi.webresource.WebResourceConstants;
 import org.everit.osgi.webresource.WebResourceContainer;
+import org.everit.osgi.webresource.util.WebResourceUtil;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.Constants;
@@ -26,18 +36,13 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleWiring;
-import org.osgi.service.log.LogService;
 import org.osgi.util.tracker.BundleTracker;
 
 /**
  * The extender tracks all of the bundles and process them if they offer the
  * {@link WebResourceConstants#CAPABILITY_NAMESPACE} capability.
  */
-@Component(name = "org.everit.osgi.webresource.WebResourceExtender", configurationFactory = false,
-    immediate = true,
-    policy = ConfigurationPolicy.OPTIONAL, metatype = true)
-@Properties({ @Property(name = "logService.target") })
-public class WebResourceExtender {
+public class WebResourceExtender implements BundleActivator {
 
   /**
    * The {@link BundleTracker} implementation of the extender.
@@ -67,9 +72,9 @@ public class WebResourceExtender {
             .getVersion();
 
         if (resourceFolder == null) {
-          logService.log(LogService.LOG_WARNING,
-              "Capability attribute " + WebResourceConstants.CAPABILITY_ATTRIBUTE_RESOURCE_FOLDER
-                  + " is missing in bundle " + bundle.toString() + ": " + capability.toString());
+          System.err.print("WARNING: Capability attribute "
+              + WebResourceConstants.CAPABILITY_ATTRIBUTE_RESOURCE_FOLDER
+              + " is missing in bundle " + bundle.toString() + ": " + capability.toString());
         } else {
           Collection<String> entries = bundleWiring.listResources(resourceFolder, "*",
               BundleWiring.LISTRESOURCES_RECURSE);
@@ -135,8 +140,7 @@ public class WebResourceExtender {
       if (libraryPrefix == null) {
         libraryPrefix = "";
       } else if (libraryPrefix.endsWith("/")) {
-        logService.log(LogService.LOG_WARNING, "'"
-            + WebResourceConstants.CAPABILITY_ATTRIBUTE_LIBRARY_PREFIX
+        System.err.print("WARNING: '" + WebResourceConstants.CAPABILITY_ATTRIBUTE_LIBRARY_PREFIX
             + "' attribute of capability "
             + WebResourceConstants.CAPABILITY_NAMESPACE + " should not end with '/' character: "
             + capability.toString());
@@ -147,11 +151,6 @@ public class WebResourceExtender {
   }
 
   private BundleContext bundleContext;
-
-  private Map<String, Object> componentConfiguration;
-
-  @Reference
-  private LogService logService;
 
   private ServiceRegistration<Servlet> pluginSR;
 
@@ -165,50 +164,14 @@ public class WebResourceExtender {
 
   private WebResourceUtil webResourceUtil;
 
-  /**
-   * Starts the extender.
-   */
-  @Activate
-  public void activate(final BundleContext context, final Map<String, Object> configuration) {
-    this.bundleContext = context;
-    this.componentConfiguration = configuration;
-
-    registerWebResourceContainer();
-
-    this.webResourceUtil = new WebResourceUtil(resourceContainer);
-
-    webResourceTracker = new WebResourceBundleTracker(context);
-    webResourceTracker.open();
-
-    registerServletFactory();
-
-    registerWebConsolePlugin();
-  }
-
-  /**
-   * Stops the extender.
-   */
-  @Deactivate
-  public void deactivate() {
-    webResourceTracker.close();
-    if (resourceContainerSR != null) {
-      resourceContainerSR.unregister();
-    }
-    if (pluginSR != null) {
-      pluginSR.unregister();
-    }
-    if (servletFactorySR != null) {
-      servletFactorySR.unregister();
-    }
-  }
-
   @SuppressWarnings("unchecked")
   private void registerServletFactory() {
     WebResourceServletPrototypeServiceFactory webResourceServletFactory =
         new WebResourceServletPrototypeServiceFactory(webResourceUtil);
 
-    Dictionary<String, Object> serviceProps = new Hashtable<>(componentConfiguration);
+    Dictionary<String, Object> serviceProps = new Hashtable<>();
     serviceProps.put(Constants.SERVICE_DESCRIPTION, "Everit WebResource Servlet");
+    serviceProps.put("async-supported", true);
 
     servletFactorySR = (ServiceRegistration<Servlet>) bundleContext.registerService(
         new String[] { Servlet.class.getName(), WebResourceServlet.class.getName() },
@@ -218,7 +181,7 @@ public class WebResourceExtender {
   private void registerWebConsolePlugin() {
     WebResourceWebConsolePlugin webConsolePlugin = new WebResourceWebConsolePlugin(
         resourceContainer, webResourceUtil);
-    Dictionary<String, Object> serviceProps = new Hashtable<>(componentConfiguration);
+    Dictionary<String, Object> serviceProps = new Hashtable<>();
     serviceProps.put("felix.webconsole.label", "everit-webresources");
     serviceProps.put("felix.webconsole.title", "Everit Webresource");
     serviceProps.put(Constants.SERVICE_DESCRIPTION, "Everit WebResource WebConsole plugin");
@@ -226,7 +189,7 @@ public class WebResourceExtender {
   }
 
   private void registerWebResourceContainer() {
-    Dictionary<String, Object> serviceProps = new Hashtable<>(componentConfiguration);
+    Dictionary<String, Object> serviceProps = new Hashtable<>();
     serviceProps.put(Constants.SERVICE_DESCRIPTION, "Everit WebResource Container (read-only)");
     resourceContainerSR = bundleContext
         .registerService(WebResourceContainer.class, resourceContainer, serviceProps);
@@ -242,5 +205,35 @@ public class WebResourceExtender {
       return externalForm;
     }
 
+  }
+
+  @Override
+  public void start(final BundleContext context) throws Exception {
+    this.bundleContext = context;
+
+    registerWebResourceContainer();
+
+    this.webResourceUtil = new WebResourceUtil(resourceContainer);
+
+    webResourceTracker = new WebResourceBundleTracker(context);
+    webResourceTracker.open();
+
+    registerServletFactory();
+
+    registerWebConsolePlugin();
+  }
+
+  @Override
+  public void stop(final BundleContext context) throws Exception {
+    webResourceTracker.close();
+    if (resourceContainerSR != null) {
+      resourceContainerSR.unregister();
+    }
+    if (pluginSR != null) {
+      pluginSR.unregister();
+    }
+    if (servletFactorySR != null) {
+      servletFactorySR.unregister();
+    }
   }
 }

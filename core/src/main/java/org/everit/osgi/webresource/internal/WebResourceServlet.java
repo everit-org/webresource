@@ -1,7 +1,21 @@
+/*
+ * Copyright (C) 2011 Everit Kft. (http://www.everit.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.everit.osgi.webresource.internal;
 
-import java.util.Collection;
-import java.util.Objects;
+import java.io.IOException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -9,13 +23,13 @@ import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRegistration;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.everit.osgi.webresource.WebResourceURIGenerator;
+import org.everit.osgi.webresource.util.WebResourceUtil;
 
 /**
  * A Servlet that can serve {@link org.everit.osgi.webresource.WebResource}s and is registered as an
@@ -27,9 +41,9 @@ import org.everit.osgi.webresource.WebResourceURIGenerator;
  */
 public class WebResourceServlet implements Servlet {
 
-  private static final int MIN_SERVLET_MAJOR_VERSION = 3;
-
-  private static final int MIN_SERVLET_MINOR_VERSION_WITH_MAJOR_3 = 1;
+  // private static final int MIN_SERVLET_MAJOR_VERSION = 3;
+  //
+  // private static final int MIN_SERVLET_MINOR_VERSION_WITH_MAJOR_3 = 1;
 
   private final AtomicInteger initCount = new AtomicInteger();
 
@@ -82,42 +96,43 @@ public class WebResourceServlet implements Servlet {
 
   @Override
   public void init(final ServletConfig config) throws ServletException {
-    if (initCount.incrementAndGet() > 1) {
-      initCount.decrementAndGet();
-      throw new IllegalStateException(
-          "WebResource servlet instance cannot be initialized more than once.");
-    }
-
-    this.servletConfig = config;
-    try {
-
-      String servletName = config.getServletName();
-      Objects.requireNonNull(servletName, "Servlet name must not be null!");
-      ServletContext servletContext = config.getServletContext();
-      if (servletContext != null) {
-        String servletContextPath = servletContext.getContextPath();
-        ServletRegistration servletRegistration = servletContext
-            .getServletRegistration(servletName);
-        Collection<String> mappings = servletRegistration.getMappings();
-
-        // TODO
-
-        if (servletContext.getMajorVersion() > MIN_SERVLET_MAJOR_VERSION
-            || (servletContext.getMajorVersion() == MIN_SERVLET_MAJOR_VERSION && servletContext
-                .getMinorVersion() > MIN_SERVLET_MINOR_VERSION_WITH_MAJOR_3)) {
-
-          // TODO
-        }
-      }
-    } catch (RuntimeException e) {
-      initCount.decrementAndGet();
-      throw e;
-    }
+    // if (initCount.incrementAndGet() > 1) {
+    // initCount.decrementAndGet();
+    // throw new IllegalStateException(
+    // "WebResource servlet instance cannot be initialized more than once.");
+    // }
+    //
+    // this.servletConfig = config;
+    // try {
+    //
+    // String servletName = config.getServletName();
+    // Objects.requireNonNull(servletName, "Servlet name must not be null!");
+    // ServletContext servletContext = config.getServletContext();
+    // if (servletContext != null) {
+    // String servletContextPath = servletContext.getContextPath();
+    // ServletRegistration servletRegistration = servletContext
+    // .getServletRegistration(servletName);
+    // Collection<String> mappings = servletRegistration.getMappings();
+    //
+    // // TODO
+    //
+    // if (servletContext.getMajorVersion() > MIN_SERVLET_MAJOR_VERSION
+    // || (servletContext.getMajorVersion() == MIN_SERVLET_MAJOR_VERSION && servletContext
+    // .getMinorVersion() > MIN_SERVLET_MINOR_VERSION_WITH_MAJOR_3)) {
+    //
+    // // // TODO
+    // }
+    // }
+    // } catch (RuntimeException e) {
+    // initCount.decrementAndGet();
+    // throw e;
+    // }
 
   }
 
   @Override
-  public void service(final ServletRequest req, final ServletResponse res) throws ServletException {
+  public void service(final ServletRequest req, final ServletResponse res) throws ServletException,
+      IOException {
     HttpServletRequest httpReq = (HttpServletRequest) req;
     String pathInfo = httpReq.getPathInfo();
     webResourceUtil.findWebResourceAndWriteResponse(httpReq, (HttpServletResponse) res, pathInfo);

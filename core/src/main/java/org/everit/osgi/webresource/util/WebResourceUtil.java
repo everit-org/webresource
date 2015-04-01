@@ -1,4 +1,19 @@
-package org.everit.osgi.webresource.internal;
+/*
+ * Copyright (C) 2011 Everit Kft. (http://www.everit.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.everit.osgi.webresource.util;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,8 +22,11 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.Properties;
 
+import javax.servlet.AsyncContext;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
+import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -25,6 +43,49 @@ import org.joda.time.format.DateTimeFormatter;
  * {@link WebResource} requests.
  */
 public class WebResourceUtil {
+
+  /**
+   * Asynchronous {@link WriteListener} that writes an {@link InputStream} to the OutputStream of
+   * the response.
+   */
+  private static final class InputStreamBasedWriteListener implements WriteListener {
+
+    private final AsyncContext async;
+
+    byte[] buf = new byte[BUFFER_SIZE];
+
+    private final InputStream in;
+
+    private InputStreamBasedWriteListener(final AsyncContext async, final InputStream in) {
+      this.in = in;
+      this.async = async;
+    }
+
+    @Override
+    public void onError(final Throwable t) {
+      ServletContext servletContext = async.getRequest().getServletContext();
+      if (servletContext != null) {
+        servletContext.log("Async exception", t);
+      } else {
+        t.printStackTrace(System.err);
+      }
+      async.complete();
+    }
+
+    @Override
+    public void onWritePossible() throws IOException {
+      ServletOutputStream out = async.getResponse().getOutputStream();
+
+      while (out.isReady()) {
+        int r = in.read(buf);
+        if (r < 0) {
+          async.complete();
+          return;
+        }
+        out.write(buf, 0, r);
+      }
+    }
+  }
 
   private static final int BUFFER_SIZE = 1024;
 
@@ -89,9 +150,11 @@ public class WebResourceUtil {
    *
    * @param pathInfo
    *          The pathInfo that should be parsed to find the {@link WebResource}.
+   * @throws IOException
+   *           if the content of the {@link WebResource} cannot be written to the output stream.
    */
   public void findWebResourceAndWriteResponse(final HttpServletRequest req,
-      final HttpServletResponse resp, final String pathInfo) throws ServletException {
+      final HttpServletResponse resp, final String pathInfo) throws ServletException, IOException {
     int lastIndexOfSlash = pathInfo.lastIndexOf('/');
 
     if (lastIndexOfSlash == (pathInfo.length() - 1)) {
@@ -111,16 +174,16 @@ public class WebResourceUtil {
     Optional<WebResource> optionalWebResource = resourceContainer.findWebResource(lib,
         resourceName, version);
 
+    if (!optionalWebResource.isPresent()) {
+      http404(resp);
+      return;
+    }
+
     writeWebResourceToResponse(req, resp, optionalWebResource);
   }
 
-  private void http404(final HttpServletResponse resp) {
-    try {
-      resp.sendError(HTTP_NOT_FOUND, "Resource cannot found");
-    } catch (IOException e) {
-      // TODO
-      throw new RuntimeException(e);
-    }
+  private void http404(final HttpServletResponse resp) throws IOException {
+    resp.sendError(HTTP_NOT_FOUND, "Resource cannot found");
   }
 
   /**
@@ -163,14 +226,9 @@ public class WebResourceUtil {
     }
   }
 
-  private void writeWebResourceToResponse(final HttpServletRequest req,
-      final HttpServletResponse resp, final Optional<WebResource> optionalwebResource) {
-    if (!optionalwebResource.isPresent()) {
-      http404(resp);
-      return;
-    }
-
-    WebResource webResource = optionalwebResource.get();
+  private ContentEncoding writeResponseHead(final HttpServletRequest req,
+      final HttpServletResponse resp,
+      final WebResource webResource) {
     resp.setContentType(webResource.getContentType());
     resp.setHeader("Last-Modified", DATE_TIME_FORMATTER.print(webResource.getLastModified()));
     resp.setHeader("ETag", "\"" + webResource.getETag() + "\"");
@@ -181,6 +239,27 @@ public class WebResourceUtil {
     if (!ContentEncoding.RAW.equals(contentEncoding)) {
       resp.setHeader("Content-Encoding", contentEncoding.getHeaderValue());
     }
+    return contentEncoding;
+  }
+
+  private void writeToOutputStreamFromInputStream(final InputStream in,
+      final ServletOutputStream out) throws IOException {
+
+    byte[] buffer = new byte[BUFFER_SIZE];
+    int r = in.read(buffer);
+    while (r >= 0) {
+      out.write(buffer, 0, r);
+      r = in.read(buffer);
+    }
+
+  }
+
+  private void writeWebResourceToResponse(final HttpServletRequest req,
+      final HttpServletResponse resp, final Optional<WebResource> optionalwebResource)
+      throws IOException {
+
+    WebResource webResource = optionalwebResource.get();
+    ContentEncoding contentEncoding = writeResponseHead(req, resp, webResource);
 
     if (etagMatchFound(req, webResource)) {
       resp.setStatus(HTTP_NOT_MODIFIED);
@@ -191,21 +270,17 @@ public class WebResourceUtil {
       return;
     }
 
-    try {
+    InputStream in = webResource.getInputStream(contentEncoding, 0);
+    if (req.isAsyncSupported()) {
+      AsyncContext async = req.startAsync();
       ServletOutputStream out = resp.getOutputStream();
-      InputStream in = webResource.getInputStream(contentEncoding, 0);
+      out.setWriteListener(new InputStreamBasedWriteListener(async, in));
 
-      byte[] buf = new byte[BUFFER_SIZE];
-      int r = in.read(buf);
-      while (r > -1) {
-        out.write(buf, 0, r);
-        r = in.read(buf);
-      }
-
-      out.flush();
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      throw new RuntimeException(e);
+      // TODO check if this has to be called due to a Jetty bug
+      out.isReady();
+    } else {
+      ServletOutputStream out = resp.getOutputStream();
+      writeToOutputStreamFromInputStream(in, out);
     }
   }
 }
