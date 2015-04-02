@@ -57,7 +57,7 @@ public class WebResourceTest {
     ServletContextHandler servletContextHandler = new ServletContextHandler();
     servletContextHandler.setContextPath("/lau");
     contextCollection.addHandler(servletContextHandler);
-    servletContextHandler.addServlet(new ServletHolder("myServlet", webResourceServlet), "/");
+    servletContextHandler.addServlet(new ServletHolder("myServlet", webResourceServlet), "/*");
 
     try {
       server.start();

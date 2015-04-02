@@ -18,6 +18,8 @@ package org.everit.osgi.webresource.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Objects;
@@ -167,7 +169,8 @@ public final class WebResourceUtil {
       final WebResource webResource) {
     resp.setContentType(webResource.getContentType());
     Instant instant = new Date(webResource.getLastModified()).toInstant();
-    resp.setHeader("Last-Modified", DateTimeFormatter.RFC_1123_DATE_TIME.format(instant));
+    ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(instant, ZoneId.of("GMT"));
+    resp.setHeader("Last-Modified", DateTimeFormatter.RFC_1123_DATE_TIME.format(zonedDateTime));
     resp.setHeader("ETag", "\"" + webResource.getETag() + "\"");
 
     ContentEncoding contentEncoding = ContentEncoding.resolveEncoding(req);
