@@ -65,4 +65,10 @@ GZIP, Deflate and RAW content encodings are supported.
 SHA-256 hash of the RAW content is concatenated with the last modification date
 of the webresource file.
 
-[![Analytics](https://ga-beacon.appspot.com/UA-15041869-4/everit-org/webresource)](https://github.com/igrigorik/ga-beacon)
+## Minimum requirements
+
+ - __OSGi 6:__ WebResourceServlet is registered with prototype service scope.
+   Luckily Felix and Equinox has OSGi 6 support now.
+ - __Servlet 3.1:__ _WebResourceUtil_ writes the content of the WebResources
+   using asynchronous IO if possible.  
+ - Java 8: Many of the features of Java 8 is used (time, optional, ...)

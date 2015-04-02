@@ -17,14 +17,14 @@ package org.everit.osgi.webresource.util;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.util.Locale;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.Properties;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServletRequest;
@@ -34,15 +34,12 @@ import org.everit.osgi.webresource.ContentEncoding;
 import org.everit.osgi.webresource.WebResource;
 import org.everit.osgi.webresource.WebResourceConstants;
 import org.everit.osgi.webresource.WebResourceContainer;
-import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 /**
  * Internal class that holds a {@link WebResourceContainer} and give utility methods to process
  * {@link WebResource} requests.
  */
-public class WebResourceUtil {
+public final class WebResourceUtil {
 
   /**
    * Asynchronous {@link WriteListener} that writes an {@link InputStream} to the OutputStream of
@@ -89,35 +86,10 @@ public class WebResourceUtil {
 
   private static final int BUFFER_SIZE = 1024;
 
-  private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormat
-      .forPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'")
-      .withLocale(Locale.US).withZone(DateTimeZone.forID("GMT"));
-
-  private static final Properties DEFAULT_CONTENT_TYPES;
-
-  private static final int HTTP_NOT_FOUND = 404;
-
   private static final int HTTP_NOT_MODIFIED = 304;
 
-  private static final String UNKNOWN_CONTENT_TYPE = "application/octet-stream";
-
-  static {
-    DEFAULT_CONTENT_TYPES = new Properties();
-    try (InputStream inputStream = WebResourceUtil.class
-        .getResourceAsStream("/META-INF/default-content-types.properties")) {
-      DEFAULT_CONTENT_TYPES.load(inputStream);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  private final WebResourceContainer resourceContainer;
-
-  public WebResourceUtil(final WebResourceContainer resourceContainer) {
-    this.resourceContainer = resourceContainer;
-  }
-
-  private boolean etagMatchFound(final HttpServletRequest request, final WebResource webResource) {
+  private static boolean etagMatchFound(final HttpServletRequest request,
+      final WebResource webResource) {
     String ifNoneMatchHeader = request.getHeader("If-None-Match");
     if (ifNoneMatchHeader == null) {
       return false;
@@ -142,6 +114,8 @@ public class WebResourceUtil {
    * Finds the {@link WebResource} based on the pathInfo and writes it to the output stream of the
    * response. If the {@link WebResource} is not found, HTTP 404 is thrown.
    *
+   * @param webResourceContainer
+   *          The container that is used to find the webResource.
    * @param req
    *          The Servlet request.
    * @param resp
@@ -153,8 +127,10 @@ public class WebResourceUtil {
    * @throws IOException
    *           if the content of the {@link WebResource} cannot be written to the output stream.
    */
-  public void findWebResourceAndWriteResponse(final HttpServletRequest req,
-      final HttpServletResponse resp, final String pathInfo) throws ServletException, IOException {
+  public static void findWebResourceAndWriteResponse(
+      final WebResourceContainer webResourceContainer, final HttpServletRequest req,
+      final HttpServletResponse resp, final String pathInfo) throws IOException {
+
     int lastIndexOfSlash = pathInfo.lastIndexOf('/');
 
     if (lastIndexOfSlash == (pathInfo.length() - 1)) {
@@ -171,7 +147,7 @@ public class WebResourceUtil {
 
     String version = req.getParameter(WebResourceConstants.REQUEST_PARAM_VERSION_RANGE);
 
-    Optional<WebResource> optionalWebResource = resourceContainer.findWebResource(lib,
+    Optional<WebResource> optionalWebResource = webResourceContainer.findWebResource(lib,
         resourceName, version);
 
     if (!optionalWebResource.isPresent()) {
@@ -179,58 +155,19 @@ public class WebResourceUtil {
       return;
     }
 
-    writeWebResourceToResponse(req, resp, optionalWebResource);
+    writeWebResourceToResponse(optionalWebResource.get(), req, resp);
   }
 
-  private void http404(final HttpServletResponse resp) throws IOException {
-    resp.sendError(HTTP_NOT_FOUND, "Resource cannot found");
+  private static void http404(final HttpServletResponse resp) throws IOException {
+    resp.sendError(WebResourceConstants.HTTP_NOT_FOUND, "Resource cannot found");
   }
 
-  /**
-   * Resolve the content type of the file that is available on the URL.
-   *
-   * @param url
-   *          The URL of the file.
-   * @return The content type of the file if known, otherwise {@value #UNKNOWN_CONTENT_TYPE}.
-   */
-  public String resolveContentType(final URL url) {
-    String extension = url.toExternalForm();
-    int lastIndexOfSlash = extension.lastIndexOf('/');
-
-    if (lastIndexOfSlash > 0) {
-      if (lastIndexOfSlash < (extension.length() - 1)) {
-        extension = extension.substring(lastIndexOfSlash + 1);
-      } else {
-        return UNKNOWN_CONTENT_TYPE;
-      }
-    }
-
-    int indexOfExtensionSeparator = extension.indexOf('.');
-    String contentType = null;
-    while ((indexOfExtensionSeparator >= 0) && (contentType == null)) {
-      if (indexOfExtensionSeparator == (extension.length() - 1)) {
-        contentType = UNKNOWN_CONTENT_TYPE;
-      } else {
-        extension = extension.substring(indexOfExtensionSeparator + 1);
-        contentType = DEFAULT_CONTENT_TYPES.getProperty(extension);
-        if (contentType == null) {
-          indexOfExtensionSeparator = extension.indexOf('.');
-        }
-      }
-    }
-
-    if (contentType == null) {
-      return UNKNOWN_CONTENT_TYPE;
-    } else {
-      return contentType;
-    }
-  }
-
-  private ContentEncoding writeResponseHead(final HttpServletRequest req,
+  private static ContentEncoding writeResponseHead(final HttpServletRequest req,
       final HttpServletResponse resp,
       final WebResource webResource) {
     resp.setContentType(webResource.getContentType());
-    resp.setHeader("Last-Modified", DATE_TIME_FORMATTER.print(webResource.getLastModified()));
+    Instant instant = new Date(webResource.getLastModified()).toInstant();
+    resp.setHeader("Last-Modified", DateTimeFormatter.RFC_1123_DATE_TIME.format(instant));
     resp.setHeader("ETag", "\"" + webResource.getETag() + "\"");
 
     ContentEncoding contentEncoding = ContentEncoding.resolveEncoding(req);
@@ -242,7 +179,7 @@ public class WebResourceUtil {
     return contentEncoding;
   }
 
-  private void writeToOutputStreamFromInputStream(final InputStream in,
+  private static void writeToOutputStreamFromInputStream(final InputStream in,
       final ServletOutputStream out) throws IOException {
 
     byte[] buffer = new byte[BUFFER_SIZE];
@@ -254,11 +191,31 @@ public class WebResourceUtil {
 
   }
 
-  private void writeWebResourceToResponse(final HttpServletRequest req,
-      final HttpServletResponse resp, final Optional<WebResource> optionalwebResource)
+  /**
+   * Writes a {@link WebResource} to the response stream, asynchronously if it is supported.
+   *
+   * @param webResource
+   *          An optional {@link WebResource}. In case the WebResource is not provided, 404 error
+   *          code will be sent to the response.
+   * @param req
+   *          The http request that can tell if async is supported or not. The function also handles
+   *          if this is a HEAD request.
+   * @param resp
+   *          The response that will be used to write the content of the webResource.
+   * @throws IOException
+   *           If there is an issue during reading the content of the {@link WebResource} or writing
+   *           to the response stream.
+   * @throws NullPointerException
+   *           if any of the parameters is null.
+   */
+  public static void writeWebResourceToResponse(final WebResource webResource,
+      final HttpServletRequest req, final HttpServletResponse resp)
       throws IOException {
 
-    WebResource webResource = optionalwebResource.get();
+    Objects.requireNonNull(req);
+    Objects.requireNonNull(resp);
+    Objects.requireNonNull(webResource);
+
     ContentEncoding contentEncoding = writeResponseHead(req, resp, webResource);
 
     if (etagMatchFound(req, webResource)) {
@@ -275,12 +232,12 @@ public class WebResourceUtil {
       AsyncContext async = req.startAsync();
       ServletOutputStream out = resp.getOutputStream();
       out.setWriteListener(new InputStreamBasedWriteListener(async, in));
-
-      // TODO check if this has to be called due to a Jetty bug
-      out.isReady();
     } else {
       ServletOutputStream out = resp.getOutputStream();
       writeToOutputStreamFromInputStream(in, out);
     }
+  }
+
+  private WebResourceUtil() {
   }
 }

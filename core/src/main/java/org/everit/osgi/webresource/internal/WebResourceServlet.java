@@ -16,6 +16,8 @@
 package org.everit.osgi.webresource.internal;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -23,11 +25,13 @@ import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.ServletRegistration;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.everit.osgi.webresource.WebResourceContainer;
 import org.everit.osgi.webresource.WebResourceURIGenerator;
 import org.everit.osgi.webresource.util.WebResourceUtil;
 
@@ -41,20 +45,16 @@ import org.everit.osgi.webresource.util.WebResourceUtil;
  */
 public class WebResourceServlet implements Servlet {
 
-  // private static final int MIN_SERVLET_MAJOR_VERSION = 3;
-  //
-  // private static final int MIN_SERVLET_MINOR_VERSION_WITH_MAJOR_3 = 1;
-
   private final AtomicInteger initCount = new AtomicInteger();
 
   private ServletConfig servletConfig;
 
   private WebResourceURIGenerator uriGenerator;
 
-  private final WebResourceUtil webResourceUtil;
+  private WebResourceContainer webResourceContainer;
 
-  public WebResourceServlet(final WebResourceUtil webResourceUtil) {
-    this.webResourceUtil = webResourceUtil;
+  public WebResourceServlet(final WebResourceContainer webResourceContainer) {
+    this.webResourceContainer = webResourceContainer;
   }
 
   @Override
@@ -96,37 +96,38 @@ public class WebResourceServlet implements Servlet {
 
   @Override
   public void init(final ServletConfig config) throws ServletException {
-    // if (initCount.incrementAndGet() > 1) {
-    // initCount.decrementAndGet();
-    // throw new IllegalStateException(
-    // "WebResource servlet instance cannot be initialized more than once.");
-    // }
-    //
-    // this.servletConfig = config;
-    // try {
-    //
-    // String servletName = config.getServletName();
-    // Objects.requireNonNull(servletName, "Servlet name must not be null!");
-    // ServletContext servletContext = config.getServletContext();
-    // if (servletContext != null) {
-    // String servletContextPath = servletContext.getContextPath();
-    // ServletRegistration servletRegistration = servletContext
-    // .getServletRegistration(servletName);
-    // Collection<String> mappings = servletRegistration.getMappings();
-    //
-    // // TODO
-    //
-    // if (servletContext.getMajorVersion() > MIN_SERVLET_MAJOR_VERSION
-    // || (servletContext.getMajorVersion() == MIN_SERVLET_MAJOR_VERSION && servletContext
-    // .getMinorVersion() > MIN_SERVLET_MINOR_VERSION_WITH_MAJOR_3)) {
-    //
-    // // // TODO
-    // }
-    // }
-    // } catch (RuntimeException e) {
-    // initCount.decrementAndGet();
-    // throw e;
-    // }
+    if (initCount.incrementAndGet() > 1) {
+      initCount.decrementAndGet();
+      throw new IllegalStateException(
+          "WebResource servlet instance cannot be initialized more than once.");
+    }
+
+    this.servletConfig = config;
+    try {
+
+      String servletName = config.getServletName();
+      Objects.requireNonNull(servletName, "Servlet name must not be null!");
+      ServletContext servletContext = config.getServletContext();
+      if (servletContext != null) {
+        String contextPath = servletContext.getContextPath();
+        ServletRegistration servletRegistration = servletContext
+            .getServletRegistration(servletName);
+        Collection<String> mappings = servletRegistration.getMappings();
+        if (mappings.size() > 0) {
+          String mapping = mappings.iterator().next();
+          uriGenerator = new WebResourceServletURIGenerator(webResourceContainer, contextPath,
+              mapping);
+
+          ConcurrentLinkedQueue<WebResourceURIGenerator> uriGeneratorQueue =
+              getOrCreateURIGeneratorQueue();
+
+          uriGeneratorQueue.add(uriGenerator);
+        }
+      }
+    } catch (RuntimeException e) {
+      initCount.decrementAndGet();
+      throw e;
+    }
 
   }
 
@@ -135,6 +136,12 @@ public class WebResourceServlet implements Servlet {
       IOException {
     HttpServletRequest httpReq = (HttpServletRequest) req;
     String pathInfo = httpReq.getPathInfo();
-    webResourceUtil.findWebResourceAndWriteResponse(httpReq, (HttpServletResponse) res, pathInfo);
+    if (pathInfo == null) {
+      // In case the mapping of the servlet is "/" the pathInfo is null and the servletPath contains
+      // the pathInfo.
+      pathInfo = httpReq.getServletPath();
+    }
+    WebResourceUtil.findWebResourceAndWriteResponse(webResourceContainer, httpReq,
+        (HttpServletResponse) res, pathInfo);
   }
 }

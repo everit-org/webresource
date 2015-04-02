@@ -26,12 +26,13 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.everit.osgi.dev.testrunner.TestRunnerConstants;
+import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
-import org.osgi.framework.ServiceRegistration;
 
 @Component(immediate = true, policy = ConfigurationPolicy.OPTIONAL)
 @Properties({
@@ -42,7 +43,7 @@ import org.osgi.framework.ServiceRegistration;
 public class WebResourceTest {
 
   private Server server;
-  private ServiceRegistration<Servlet> servletSR;
+
   @Reference(bind = "setWebResourceServlet", target = "(" + Constants.SERVICE_DESCRIPTION
       + "=Everit WebResource Servlet)")
   private Servlet webResourceServlet;
@@ -50,10 +51,13 @@ public class WebResourceTest {
   @Activate
   public void activate(final BundleContext context) {
     server = new Server(8888);
-    ServletContextHandler servletContextHandler = new ServletContextHandler();
-    server.setHandler(servletContextHandler);
+    ContextHandlerCollection contextCollection = new ContextHandlerCollection();
+    server.setHandler(contextCollection);
 
-    servletContextHandler.addServlet(new ServletHolder("myServlet", webResourceServlet), "/*");
+    ServletContextHandler servletContextHandler = new ServletContextHandler();
+    servletContextHandler.setContextPath("/lau");
+    contextCollection.addHandler(servletContextHandler);
+    servletContextHandler.addServlet(new ServletHolder("myServlet", webResourceServlet), "/");
 
     try {
       server.start();
@@ -76,6 +80,11 @@ public class WebResourceTest {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Test
+  public void dummyTest() {
+
   }
 
   public void setWebResourceServlet(final Servlet webResourceServlet) {

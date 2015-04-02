@@ -17,7 +17,7 @@ package org.everit.osgi.webresource.internal;
 
 import javax.servlet.Servlet;
 
-import org.everit.osgi.webresource.util.WebResourceUtil;
+import org.everit.osgi.webresource.WebResourceContainer;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.PrototypeServiceFactory;
 import org.osgi.framework.ServiceRegistration;
@@ -27,15 +27,17 @@ import org.osgi.framework.ServiceRegistration;
  */
 public class WebResourceServletPrototypeServiceFactory implements PrototypeServiceFactory<Servlet> {
 
-  private final WebResourceUtil webResourceUtil;
+  private final WebResourceContainer webResourceContainer;
 
-  public WebResourceServletPrototypeServiceFactory(final WebResourceUtil webResourceUtil) {
-    this.webResourceUtil = webResourceUtil;
+  public WebResourceServletPrototypeServiceFactory(
+      final WebResourceContainer webResourceContainer) {
+
+    this.webResourceContainer = webResourceContainer;
   }
 
   @Override
   public Servlet getService(final Bundle bundle, final ServiceRegistration<Servlet> registration) {
-    return new WebResourceServlet(webResourceUtil);
+    return new WebResourceServlet(webResourceContainer);
   }
 
   @Override

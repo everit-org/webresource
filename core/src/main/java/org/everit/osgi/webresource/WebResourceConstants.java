@@ -42,6 +42,8 @@ public final class WebResourceConstants {
    */
   public static final String CAPABILITY_NAMESPACE = "everit.webresource";
 
+  public static final int HTTP_NOT_FOUND = 404;
+
   /**
    * Name of the unknown mime type.
    */

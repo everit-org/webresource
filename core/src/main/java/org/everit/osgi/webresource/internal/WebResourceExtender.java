@@ -26,7 +26,6 @@ import javax.servlet.Servlet;
 
 import org.everit.osgi.webresource.WebResourceConstants;
 import org.everit.osgi.webresource.WebResourceContainer;
-import org.everit.osgi.webresource.util.WebResourceUtil;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -90,7 +89,7 @@ public class WebResourceExtender implements BundleActivator {
                   entry.length() - fileName.length());
               library = normalizeLibraryName(libraryPrefix, library);
 
-              String contentType = webResourceUtil.resolveContentType(resourceURL);
+              String contentType = ContentTypeUtil.resolveContentType(resourceURL);
               WebResourceImpl webResource = new WebResourceImpl(bundle, library, fileName,
                   resourceURL,
                   version, contentType);
@@ -162,12 +161,10 @@ public class WebResourceExtender implements BundleActivator {
 
   private BundleTracker<Bundle> webResourceTracker;
 
-  private WebResourceUtil webResourceUtil;
-
   @SuppressWarnings("unchecked")
   private void registerServletFactory() {
     WebResourceServletPrototypeServiceFactory webResourceServletFactory =
-        new WebResourceServletPrototypeServiceFactory(webResourceUtil);
+        new WebResourceServletPrototypeServiceFactory(resourceContainer);
 
     Dictionary<String, Object> serviceProps = new Hashtable<>();
     serviceProps.put(Constants.SERVICE_DESCRIPTION, "Everit WebResource Servlet");
@@ -180,7 +177,7 @@ public class WebResourceExtender implements BundleActivator {
 
   private void registerWebConsolePlugin() {
     WebResourceWebConsolePlugin webConsolePlugin = new WebResourceWebConsolePlugin(
-        resourceContainer, webResourceUtil);
+        resourceContainer, resourceContainer);
     Dictionary<String, Object> serviceProps = new Hashtable<>();
     serviceProps.put("felix.webconsole.label", "everit-webresources");
     serviceProps.put("felix.webconsole.title", "Everit Webresource");
@@ -212,8 +209,6 @@ public class WebResourceExtender implements BundleActivator {
     this.bundleContext = context;
 
     registerWebResourceContainer();
-
-    this.webResourceUtil = new WebResourceUtil(resourceContainer);
 
     webResourceTracker = new WebResourceBundleTracker(context);
     webResourceTracker.open();

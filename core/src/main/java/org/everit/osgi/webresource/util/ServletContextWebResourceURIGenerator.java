@@ -29,13 +29,13 @@ import org.everit.osgi.webresource.WebResourceURIGenerator;
  * {@link ServletContext} attribute. The key of the attribute is the full name of
  * {@link WebResourceURIGenerator} interface.
  */
-public class SameContextWebResourceURIGenerator implements WebResourceURIGenerator {
+public class ServletContextWebResourceURIGenerator implements WebResourceURIGenerator {
 
   private final ServletContext context;
 
   private Queue<WebResourceURIGenerator> uriGeneratorQueue;
 
-  public SameContextWebResourceURIGenerator(final ServletContext context) {
+  public ServletContextWebResourceURIGenerator(final ServletContext context) {
     this.context = context;
   }
 

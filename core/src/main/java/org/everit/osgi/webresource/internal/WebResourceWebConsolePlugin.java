@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.everit.osgi.webresource.ContentEncoding;
 import org.everit.osgi.webresource.WebResourceConstants;
+import org.everit.osgi.webresource.WebResourceContainer;
 import org.everit.osgi.webresource.util.WebResourceUtil;
 import org.osgi.framework.Version;
 
@@ -43,12 +44,12 @@ public class WebResourceWebConsolePlugin implements Servlet {
 
   private final WebResourceContainerImpl resourceContainer;
 
-  private final WebResourceUtil webResourceUtil;
+  private WebResourceContainer webResourceContainer;
 
   public WebResourceWebConsolePlugin(final WebResourceContainerImpl resourceContainer,
-      final WebResourceUtil webResourceUtil) {
+      final WebResourceContainer webResourceContainer) {
     this.resourceContainer = resourceContainer;
-    this.webResourceUtil = webResourceUtil;
+    this.webResourceContainer = webResourceContainer;
   }
 
   private <T> T cast(final Object original) {
@@ -126,7 +127,7 @@ public class WebResourceWebConsolePlugin implements Servlet {
 
             writer.write("<td class='content'><a href=\"" + pluginRootURI + "/" + library
                 + (("".equals(library)) ? "" : "/")
-                + fileName + "?" + WebResourceConstants.REQUEST_PARAM_VERSION_RANGE + "=["
+                + fileName + ".resource?" + WebResourceConstants.REQUEST_PARAM_VERSION_RANGE + "=["
                 + version.toString() + "," + version.toString() + "]\">" + fileName + "</a></td>");
 
             writer.write("<td class='content'>" + version + "</td>");
@@ -183,7 +184,11 @@ public class WebResourceWebConsolePlugin implements Servlet {
       requestURI = requestURI.substring(0, requestURI.length() - ".resource".length());
       String requestPath = requestURI.substring(pluginRootURI.length());
 
-      webResourceUtil.findWebResourceAndWriteResponse(httpReq, httpRes, requestPath);
+      NoAsyncHttpServletRequest noAsyncRequest = new NoAsyncHttpServletRequest(httpReq);
+      WebResourceUtil.findWebResourceAndWriteResponse(webResourceContainer, noAsyncRequest,
+          httpRes, requestPath);
+    } else {
+      httpRes.sendError(WebResourceConstants.HTTP_NOT_FOUND);
     }
   }
 
