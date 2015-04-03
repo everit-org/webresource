@@ -31,13 +31,15 @@ public interface WebResourceContainer {
    * @param resourceName
    *          Name of the resource / file.
    * @param versionRange
-   *          A version range to identify the web resource exactly.
+   *          A version range to identify the web resource or {@link Optional#empty()} to accept any
+   *          version.
    * @return The web resource if found.
    * @throws NullPointerException
    *           if lib or resourceName is null.
    * @throws IllegalArgumentException
    *           if the version range is not in the expected format.
    */
-  Optional<WebResource> findWebResource(String lib, String resourceName, String versionRange);
+  Optional<WebResource> findWebResource(String lib, String resourceName,
+      Optional<String> versionRange);
 
 }

@@ -29,19 +29,19 @@ import org.everit.osgi.webresource.WebResourceURIGenerator;
  * {@link ServletContext} attribute. The key of the attribute is the full name of
  * {@link WebResourceURIGenerator} interface.
  */
-public class ServletContextWebResourceURIGenerator implements WebResourceURIGenerator {
+public class CommonContextWebResourceURIGenerator implements WebResourceURIGenerator {
 
   private final ServletContext context;
 
   private Queue<WebResourceURIGenerator> uriGeneratorQueue;
 
-  public ServletContextWebResourceURIGenerator(final ServletContext context) {
+  public CommonContextWebResourceURIGenerator(final ServletContext context) {
     this.context = context;
   }
 
   @Override
   public Optional<String> generateURI(final String lib, final String file,
-      final String versionRange, final boolean appendLastModifiedParameter) {
+      final Optional<String> versionRange) {
     Queue<WebResourceURIGenerator> lUriGeneratorQueue = getUriGeneratorQueue();
 
     if (lUriGeneratorQueue == null) {
@@ -56,8 +56,7 @@ public class ServletContextWebResourceURIGenerator implements WebResourceURIGene
         // It might happen that WebResourceURIGenerator from different version of the API are placed
         // into the ServletContext so we must check
         WebResourceURIGenerator webResourceURIGenerator = (WebResourceURIGenerator) nextItemObject;
-        result = webResourceURIGenerator.generateURI(lib, file, versionRange,
-            appendLastModifiedParameter).orElse(null);
+        result = webResourceURIGenerator.generateURI(lib, file, versionRange).orElse(null);
       }
     }
     return Optional.ofNullable(result);

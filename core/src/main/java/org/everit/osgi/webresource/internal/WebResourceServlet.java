@@ -51,7 +51,7 @@ public class WebResourceServlet implements Servlet {
 
   private WebResourceURIGenerator uriGenerator;
 
-  private WebResourceContainer webResourceContainer;
+  private final WebResourceContainer webResourceContainer;
 
   public WebResourceServlet(final WebResourceContainer webResourceContainer) {
     this.webResourceContainer = webResourceContainer;
@@ -135,13 +135,7 @@ public class WebResourceServlet implements Servlet {
   public void service(final ServletRequest req, final ServletResponse res) throws ServletException,
       IOException {
     HttpServletRequest httpReq = (HttpServletRequest) req;
-    String pathInfo = httpReq.getPathInfo();
-    if (pathInfo == null) {
-      // In case the mapping of the servlet is "/" the pathInfo is null and the servletPath contains
-      // the pathInfo.
-      pathInfo = httpReq.getServletPath();
-    }
     WebResourceUtil.findWebResourceAndWriteResponse(webResourceContainer, httpReq,
-        (HttpServletResponse) res, pathInfo);
+        (HttpServletResponse) res);
   }
 }

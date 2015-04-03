@@ -34,7 +34,7 @@ public class WebResourceServletURIGenerator implements WebResourceURIGenerator {
 
   /**
    * Constructor.
-   * 
+   *
    * @param webResourceContainer
    *          The container that holds the webresources for this uri generator.
    * @param contextPath
@@ -78,8 +78,7 @@ public class WebResourceServletURIGenerator implements WebResourceURIGenerator {
 
   @Override
   public Optional<String> generateURI(final String lib, final String file,
-      final String versionRange,
-      final boolean appendLastModifiedParameter) {
+      final Optional<String> versionRange) {
 
     Optional<WebResource> webResource = webResourceContainer.findWebResource(lib, file,
         versionRange);
@@ -97,14 +96,12 @@ public class WebResourceServletURIGenerator implements WebResourceURIGenerator {
     sb.append(pathSuffix);
 
     char parameterSeparator = '?';
-    if (versionRange != null && versionRange.length() > 0) {
+    if (versionRange.isPresent() && versionRange.get().length() > 0) {
       parameterSeparator = '&';
       sb.append(parameterSeparator).append("version=").append(versionRange);
     }
 
-    if (appendLastModifiedParameter) {
-      sb.append(parameterSeparator).append("t=").append(webResource.get().getLastModified());
-    }
+    sb.append(parameterSeparator).append("t=").append(webResource.get().getLastModified());
 
     return Optional.of(sb.toString());
   }

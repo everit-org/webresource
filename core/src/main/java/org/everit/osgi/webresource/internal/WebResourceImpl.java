@@ -28,6 +28,11 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -60,6 +65,8 @@ public class WebResourceImpl implements WebResource {
   private final String fileName;
 
   private final long lastModified;
+
+  private final String lastModifiedRFC1123GMT;
 
   private final String library;
 
@@ -102,7 +109,8 @@ public class WebResourceImpl implements WebResource {
     this.fileName = fileName;
     this.version = version;
     this.library = library;
-    etag = resolveETag();
+    this.etag = resolveETag();
+    this.lastModifiedRFC1123GMT = resolveLastModifiedRFC1123();
   }
 
   public void destroy() {
@@ -214,6 +222,11 @@ public class WebResourceImpl implements WebResource {
   }
 
   @Override
+  public String getLastModifiedRFC1123GMT() {
+    return lastModifiedRFC1123GMT;
+  }
+
+  @Override
   public String getLibrary() {
     return library;
   }
@@ -301,5 +314,11 @@ public class WebResourceImpl implements WebResource {
     } catch (NoSuchAlgorithmException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private String resolveLastModifiedRFC1123() {
+    Instant instant = new Date(this.lastModified).toInstant();
+    ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(instant, ZoneId.of("GMT"));
+    return DateTimeFormatter.RFC_1123_DATE_TIME.format(zonedDateTime);
   }
 }

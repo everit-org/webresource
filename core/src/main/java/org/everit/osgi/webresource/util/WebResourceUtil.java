@@ -17,11 +17,6 @@ package org.everit.osgi.webresource.util;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -123,15 +118,18 @@ public final class WebResourceUtil {
    * @param resp
    *          The Servlet Response which headers will be set and if the request is a GET request,
    *          the {@link WebResource} will be written to the OutputStream of the response.
-   *
-   * @param pathInfo
-   *          The pathInfo that should be parsed to find the {@link WebResource}.
    * @throws IOException
    *           if the content of the {@link WebResource} cannot be written to the output stream.
    */
   public static void findWebResourceAndWriteResponse(
       final WebResourceContainer webResourceContainer, final HttpServletRequest req,
-      final HttpServletResponse resp, final String pathInfo) throws IOException {
+      final HttpServletResponse resp) throws IOException {
+
+    String pathInfo = req.getPathInfo();
+    if (pathInfo == null) {
+      // Happens when the servlet is a default servlet in the servlet context
+      pathInfo = req.getServletPath();
+    }
 
     int lastIndexOfSlash = pathInfo.lastIndexOf('/');
 
@@ -150,7 +148,7 @@ public final class WebResourceUtil {
     String version = req.getParameter(WebResourceConstants.REQUEST_PARAM_VERSION_RANGE);
 
     Optional<WebResource> optionalWebResource = webResourceContainer.findWebResource(lib,
-        resourceName, version);
+        resourceName, Optional.ofNullable(version));
 
     if (!optionalWebResource.isPresent()) {
       http404(resp);
@@ -168,10 +166,8 @@ public final class WebResourceUtil {
       final HttpServletResponse resp,
       final WebResource webResource) {
     resp.setContentType(webResource.getContentType());
-    Instant instant = new Date(webResource.getLastModified()).toInstant();
-    ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(instant, ZoneId.of("GMT"));
-    resp.setHeader("Last-Modified", DateTimeFormatter.RFC_1123_DATE_TIME.format(zonedDateTime));
-    resp.setHeader("ETag", "\"" + webResource.getETag() + "\"");
+    resp.setHeader("Last-Modified", webResource.getLastModifiedRFC1123GMT());
+    resp.setHeader("ETag", '"' + webResource.getETag() + '"');
 
     ContentEncoding contentEncoding = ContentEncoding.resolveEncoding(req);
     resp.setContentLength((int) webResource.getContentLength(contentEncoding));

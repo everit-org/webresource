@@ -44,7 +44,7 @@ public class WebResourceWebConsolePlugin implements Servlet {
 
   private final WebResourceContainerImpl resourceContainer;
 
-  private WebResourceContainer webResourceContainer;
+  private final WebResourceContainer webResourceContainer;
 
   public WebResourceWebConsolePlugin(final WebResourceContainerImpl resourceContainer,
       final WebResourceContainer webResourceContainer) {
@@ -181,12 +181,9 @@ public class WebResourceWebConsolePlugin implements Servlet {
     if (requestURI.equals(pluginRootURI)) {
       respondPluginPage(res, pluginRootURI);
     } else if (requestURI.endsWith(".resource")) {
-      requestURI = requestURI.substring(0, requestURI.length() - ".resource".length());
-      String requestPath = requestURI.substring(pluginRootURI.length());
-
-      NoAsyncHttpServletRequest noAsyncRequest = new NoAsyncHttpServletRequest(httpReq);
+      WebconsoleHttpServletRequest noAsyncRequest = new WebconsoleHttpServletRequest(httpReq);
       WebResourceUtil.findWebResourceAndWriteResponse(webResourceContainer, noAsyncRequest,
-          httpRes, requestPath);
+          httpRes);
     } else {
       httpRes.sendError(WebResourceConstants.HTTP_NOT_FOUND);
     }

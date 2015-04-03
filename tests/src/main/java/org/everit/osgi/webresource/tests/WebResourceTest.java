@@ -15,6 +15,9 @@
  */
 package org.everit.osgi.webresource.tests;
 
+import java.util.Optional;
+import java.util.Queue;
+
 import javax.servlet.Servlet;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -29,7 +32,10 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.everit.osgi.dev.testrunner.TestDuringDevelopment;
 import org.everit.osgi.dev.testrunner.TestRunnerConstants;
+import org.everit.osgi.webresource.WebResourceURIGenerator;
+import org.junit.Assert;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -44,6 +50,8 @@ public class WebResourceTest {
 
   private Server server;
 
+  private ServletContextHandler servletContextHandler;
+
   @Reference(bind = "setWebResourceServlet", target = "(" + Constants.SERVICE_DESCRIPTION
       + "=Everit WebResource Servlet)")
   private Servlet webResourceServlet;
@@ -54,13 +62,14 @@ public class WebResourceTest {
     ContextHandlerCollection contextCollection = new ContextHandlerCollection();
     server.setHandler(contextCollection);
 
-    ServletContextHandler servletContextHandler = new ServletContextHandler();
-    servletContextHandler.setContextPath("/lau");
+    servletContextHandler = new ServletContextHandler();
+    servletContextHandler.setContextPath("/testcontext");
     contextCollection.addHandler(servletContextHandler);
-    servletContextHandler.addServlet(new ServletHolder("myServlet", webResourceServlet), "/*");
+    servletContextHandler.addServlet(new ServletHolder("testServlet", webResourceServlet), "/*");
 
     try {
       server.start();
+
       // System.out.println("JETTY STARTED AT PORT " + server.getConnectors()[0].getPort());
     } catch (Exception e) {
       try {
@@ -68,9 +77,11 @@ public class WebResourceTest {
       } catch (Exception e1) {
         e.addSuppressed(e1);
       }
+      if (e instanceof RuntimeException) {
+        throw (RuntimeException) e;
+      }
       throw new RuntimeException(e);
     }
-
   }
 
   @Deactivate
@@ -82,12 +93,34 @@ public class WebResourceTest {
     }
   }
 
-  @Test
-  public void dummyTest() {
+  private WebResourceURIGenerator resolveURIGenerator() {
+    Object uriGeneratorAttribute = servletContextHandler.getServletContext()
+        .getAttribute(WebResourceURIGenerator.class.getName());
 
+    Assert.assertNotNull(uriGeneratorAttribute);
+
+    @SuppressWarnings("unchecked")
+    Queue<WebResourceURIGenerator> queue = (Queue<WebResourceURIGenerator>) uriGeneratorAttribute;
+
+    return queue.peek();
   }
 
   public void setWebResourceServlet(final Servlet webResourceServlet) {
     this.webResourceServlet = webResourceServlet;
+  }
+
+  @Test
+  public void testURIGeneratorForExistingWebResource() {
+    WebResourceURIGenerator uriGenerator = resolveURIGenerator();
+    Optional<String> uri = uriGenerator.generateURI("nonexistent", "nonexistent", Optional.empty());
+    Assert.assertFalse(uri.isPresent());
+  }
+
+  @Test
+  @TestDuringDevelopment
+  public void testURIGeneratorForNonExistentWebResource() {
+    WebResourceURIGenerator uriGenerator = resolveURIGenerator();
+    Optional<String> uri = uriGenerator.generateURI("site1/css", "main.css", Optional.empty());
+    Assert.assertTrue(uri.isPresent());
   }
 }

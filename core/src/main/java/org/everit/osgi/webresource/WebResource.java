@@ -86,6 +86,12 @@ public interface WebResource {
   long getLastModified();
 
   /**
+   * The RFC1123 GMT representation of the value of {@link #getLastModified()}. This is normally
+   * used to pass the Last-Modified response header value.
+   */
+  String getLastModifiedRFC1123GMT();
+
+  /**
    * The name of the library of the {@link WebResource}. E.g.: jquery.
    */
   String getLibrary();

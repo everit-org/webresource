@@ -63,7 +63,7 @@ public class WebResourceContainerImpl implements WebResourceContainer {
 
   @Override
   public Optional<WebResource> findWebResource(final String lib, final String resourceName,
-      final String version) {
+      final Optional<String> version) {
     Objects.requireNonNull(lib, "WebResource library must not be null");
     Objects.requireNonNull(lib, "WebResource name must not be null");
 
@@ -72,7 +72,7 @@ public class WebResourceContainerImpl implements WebResourceContainer {
       return Optional.empty();
     }
 
-    VersionRange versionRange = VersionRange.parseVersionRange(version);
+    VersionRange versionRange = VersionRange.parseVersionRange(version.orElse(null));
     return libContainer.findWebResource(resourceName, versionRange);
 
   }

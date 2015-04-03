@@ -18,7 +18,7 @@ package org.everit.osgi.webresource;
 import java.util.Optional;
 
 /**
- * Standard interface to resolve URI for WebResources.
+ * Standard interface to generate URI for WebResources that can be used on websites, e-mails, etc.
  */
 public interface WebResourceURIGenerator {
 
@@ -31,11 +31,11 @@ public interface WebResourceURIGenerator {
    * @param file
    *          The file name of the {@link WebResource}.
    * @param version
-   *          The version. Range expression is accepted.
-   * @return The full path of the web resource. In case the webResource is not available, an empty
-   *         optional will be returned.
+   *          The version range expression that must the {@link WebResource#getVersion()} match or
+   *          {@link Optional#empty()} if any version is accepted.
+   * @return The URI that can be used to access the {@link WebResource} or {@link Optional#empty()}
+   *         if the URI cannot be resolved.
    */
-  Optional<String> generateURI(String lib, String file, String versionRange,
-      boolean appendLastModifiedParameter);
+  Optional<String> generateURI(String lib, String file, Optional<String> versionRange);
 
 }

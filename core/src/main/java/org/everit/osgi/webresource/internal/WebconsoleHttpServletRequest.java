@@ -19,14 +19,22 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 
 /**
- * Wraps the original {@link HttpServletRequest} to avoid the webconsole bug that makes it
- * impossible to process async requests. See <a
- * href="https://issues.apache.org/jira/browse/FELIX-4840">FELIX-4840</a> bug report.
+ * Wraps the original {@link HttpServletRequest} to make it work within the webconsole plugin.
+ * PathInfo must be reduced with webconsole plugin url prefix and async must be disabled due to <a
+ * href="https://issues.apache.org/jira/browse/FELIX-4840">FELIX-4840</a> bug.
  */
-public class NoAsyncHttpServletRequest extends HttpServletRequestWrapper {
+public class WebconsoleHttpServletRequest extends HttpServletRequestWrapper {
 
-  public NoAsyncHttpServletRequest(final HttpServletRequest request) {
+  public WebconsoleHttpServletRequest(final HttpServletRequest request) {
     super(request);
+  }
+
+  @Override
+  public String getPathInfo() {
+    String pluginRootURI = (String) getAttribute("felix.webconsole.pluginRoot");
+    String requestURI = getRequestURI();
+    requestURI = requestURI.substring(0, requestURI.length() - ".resource".length());
+    return requestURI.substring(pluginRootURI.length());
   }
 
   @Override
