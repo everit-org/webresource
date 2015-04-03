@@ -17,8 +17,11 @@ package org.everit.osgi.webresource.util;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletContext;
@@ -31,6 +34,7 @@ import org.everit.osgi.webresource.ContentEncoding;
 import org.everit.osgi.webresource.WebResource;
 import org.everit.osgi.webresource.WebResourceConstants;
 import org.everit.osgi.webresource.WebResourceContainer;
+import org.everit.osgi.webresource.WebResourceURIGenerator;
 
 /**
  * Internal class that holds a {@link WebResourceContainer} and give utility methods to process
@@ -158,6 +162,30 @@ public final class WebResourceUtil {
     writeWebResourceToResponse(optionalWebResource.get(), req, resp);
   }
 
+  /**
+   * Retrieves the {@link WebResourceURIGenerator} queue from the specified {@link ServletContext}
+   * or if it is not registered yet, registers an empty one.
+   *
+   * @return A {@link Collection} of {@link WebResourceURIGenerator}s that are registered in the
+   *         {@link ServletContext}. The collection can be modified by the caller concurrently and
+   *         the changes will be applied within the ServletContext.
+   */
+  public static Collection<WebResourceURIGenerator> getUriGeneratorsOfServletContext(
+      final ServletContext servletContext) {
+
+    @SuppressWarnings("unchecked")
+    Queue<WebResourceURIGenerator> uriGeneratorQueue =
+        (Queue<WebResourceURIGenerator>) servletContext.getAttribute(WebResourceURIGenerator.class
+            .getName());
+
+    if (uriGeneratorQueue == null) {
+      uriGeneratorQueue = new ConcurrentLinkedQueue<>();
+      servletContext.setAttribute(WebResourceURIGenerator.class.getName(), uriGeneratorQueue);
+    }
+
+    return uriGeneratorQueue;
+  }
+
   private static void http404(final HttpServletResponse resp) throws IOException {
     resp.sendError(WebResourceConstants.HTTP_NOT_FOUND, "Resource cannot found");
   }
@@ -187,7 +215,6 @@ public final class WebResourceUtil {
       out.write(buffer, 0, r);
       r = in.read(buffer);
     }
-
   }
 
   /**

@@ -85,7 +85,10 @@
             <Import-Package>
               *
             </Import-Package>
-            <Export-Package>${project.artifactId}</Export-Package>
+            <Export-Package>
+              org.everit.osgi.webresource;version="2.0.0",
+              org.everit.osgi.webresource.util;version="2.0.0"
+            </Export-Package>
           </instructions>
         </configuration>
       </plugin>

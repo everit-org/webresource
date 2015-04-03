@@ -35,11 +35,15 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.everit.osgi.dev.testrunner.TestDuringDevelopment;
 import org.everit.osgi.dev.testrunner.TestRunnerConstants;
 import org.everit.osgi.webresource.WebResourceURIGenerator;
+import org.everit.osgi.webresource.util.WebResourceUtil;
 import org.junit.Assert;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 
+/**
+ * Test component for WebResource.
+ */
 @Component(immediate = true, policy = ConfigurationPolicy.OPTIONAL)
 @Properties({
     @Property(name = TestRunnerConstants.SERVICE_PROPERTY_TESTRUNNER_ENGINE_TYPE, value = "junit4"),
@@ -56,9 +60,13 @@ public class WebResourceTest {
       + "=Everit WebResource Servlet)")
   private Servlet webResourceServlet;
 
+  /**
+   * Activate method of the component that starts a jetty server and registers an instance of
+   * WebResourceServlet on it.
+   */
   @Activate
   public void activate(final BundleContext context) {
-    server = new Server(8888);
+    server = new Server(0);
     ContextHandlerCollection contextCollection = new ContextHandlerCollection();
     server.setHandler(contextCollection);
 
@@ -69,8 +77,6 @@ public class WebResourceTest {
 
     try {
       server.start();
-
-      // System.out.println("JETTY STARTED AT PORT " + server.getConnectors()[0].getPort());
     } catch (Exception e) {
       try {
         server.stop();
@@ -84,6 +90,9 @@ public class WebResourceTest {
     }
   }
 
+  /**
+   * Deactivate method of the component that stops the jetty server.
+   */
   @Deactivate
   public void deactivate() {
     try {
@@ -94,8 +103,8 @@ public class WebResourceTest {
   }
 
   private WebResourceURIGenerator resolveURIGenerator() {
-    Object uriGeneratorAttribute = servletContextHandler.getServletContext()
-        .getAttribute(WebResourceURIGenerator.class.getName());
+    Object uriGeneratorAttribute = WebResourceUtil
+        .getUriGeneratorsOfServletContext(servletContextHandler.getServletContext());
 
     Assert.assertNotNull(uriGeneratorAttribute);
 
@@ -120,7 +129,7 @@ public class WebResourceTest {
   @TestDuringDevelopment
   public void testURIGeneratorForNonExistentWebResource() {
     WebResourceURIGenerator uriGenerator = resolveURIGenerator();
-    Optional<String> uri = uriGenerator.generateURI("site1/css", "main.css", Optional.empty());
+    Optional<String> uri = uriGenerator.generateURI("foo/bar/css", "main.css", Optional.empty());
     Assert.assertTrue(uri.isPresent());
   }
 }

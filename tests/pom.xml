@@ -50,7 +50,7 @@
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
             <Import-Package>*</Import-Package>
             <Export-Package />
-            <Provide-Capability>everit.webresource;resourceFolder=/META-INF/resources/lib1;libraryPrefix=site1,everit.webresource;resourceFolder=/META-INF/resources/lib2</Provide-Capability>
+            <Provide-Capability>everit.webresource;resourceFolder=/META-INF/resources/lib1;libraryPrefix=foo/bar,everit.webresource;resourceFolder=/META-INF/resources/lib2</Provide-Capability>
             <EOSGi-TestNum>2</EOSGi-TestNum>
           </instructions>
         </configuration>
@@ -58,7 +58,7 @@
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-scr-plugin</artifactId>
-        <version>1.19.0</version>
+        <version>1.20.0</version>
         <executions>
           <execution>
             <id>generate-scr-scrdescriptor</id>

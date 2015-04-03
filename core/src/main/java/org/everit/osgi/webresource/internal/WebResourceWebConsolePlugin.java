@@ -52,12 +52,6 @@ public class WebResourceWebConsolePlugin implements Servlet {
     this.webResourceContainer = webResourceContainer;
   }
 
-  private <T> T cast(final Object original) {
-    @SuppressWarnings("unchecked")
-    T result = (T) original;
-    return result;
-  }
-
   @Override
   public void destroy() {
     // TODO Auto-generated method stub
@@ -173,8 +167,8 @@ public class WebResourceWebConsolePlugin implements Servlet {
   @Override
   public void service(final ServletRequest req, final ServletResponse res) throws ServletException,
       IOException {
-    HttpServletRequest httpReq = cast(req);
-    HttpServletResponse httpRes = cast(res);
+    HttpServletRequest httpReq = WebResourceInternalUtil.cast(req);
+    HttpServletResponse httpRes = WebResourceInternalUtil.cast(res);
 
     String pluginRootURI = (String) req.getAttribute("felix.webconsole.pluginRoot");
     String requestURI = httpReq.getRequestURI();

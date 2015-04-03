@@ -49,7 +49,7 @@ public class WebResourceServletURIGenerator implements WebResourceURIGenerator {
     String pathPrefixResult = contextPath;
 
     if (pathPrefixResult.endsWith("/")) {
-      pathPrefixResult.substring(0, pathPrefixResult.length() - 1);
+      pathPrefixResult = pathPrefixResult.substring(0, pathPrefixResult.length() - 1);
     }
 
     String pathSuffixResult = "";

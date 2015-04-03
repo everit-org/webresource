@@ -128,14 +128,15 @@ public class WebResourceServlet implements Servlet {
       initCount.decrementAndGet();
       throw e;
     }
-
   }
 
   @Override
   public void service(final ServletRequest req, final ServletResponse res) throws ServletException,
       IOException {
-    HttpServletRequest httpReq = (HttpServletRequest) req;
-    WebResourceUtil.findWebResourceAndWriteResponse(webResourceContainer, httpReq,
-        (HttpServletResponse) res);
+
+    HttpServletRequest httpReq = WebResourceInternalUtil.cast(req);
+    HttpServletResponse httpRes = WebResourceInternalUtil.cast(res);
+
+    WebResourceUtil.findWebResourceAndWriteResponse(webResourceContainer, httpReq, httpRes);
   }
 }

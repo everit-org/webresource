@@ -15,9 +15,9 @@
  */
 package org.everit.osgi.webresource.util;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Optional;
-import java.util.Queue;
 
 import javax.servlet.ServletContext;
 
@@ -25,31 +25,28 @@ import org.everit.osgi.webresource.WebResourceURIGenerator;
 
 /**
  * Implementation of {@link WebResourceURIGenerator} that expects having one or more
- * {@link WebResourceURIGenerator} instances packed into a {@link Queue}, registered as
+ * {@link WebResourceURIGenerator} instances packed into a {@link Collection}, registered as
  * {@link ServletContext} attribute. The key of the attribute is the full name of
  * {@link WebResourceURIGenerator} interface.
  */
 public class CommonContextWebResourceURIGenerator implements WebResourceURIGenerator {
 
-  private final ServletContext context;
-
-  private Queue<WebResourceURIGenerator> uriGeneratorQueue;
+  private final Collection<WebResourceURIGenerator> uriGeneratorQueue;
 
   public CommonContextWebResourceURIGenerator(final ServletContext context) {
-    this.context = context;
+    uriGeneratorQueue = WebResourceUtil.getUriGeneratorsOfServletContext(context);
   }
 
   @Override
   public Optional<String> generateURI(final String lib, final String file,
       final Optional<String> versionRange) {
-    Queue<WebResourceURIGenerator> lUriGeneratorQueue = getUriGeneratorQueue();
 
-    if (lUriGeneratorQueue == null) {
+    if (uriGeneratorQueue == null) {
       return Optional.empty();
     }
 
     String result = null;
-    Iterator<WebResourceURIGenerator> iterator = lUriGeneratorQueue.iterator();
+    Iterator<WebResourceURIGenerator> iterator = uriGeneratorQueue.iterator();
     while (result == null && iterator.hasNext()) {
       Object nextItemObject = iterator.next();
       if (nextItemObject instanceof WebResourceURIGenerator) {
@@ -60,15 +57,6 @@ public class CommonContextWebResourceURIGenerator implements WebResourceURIGener
       }
     }
     return Optional.ofNullable(result);
-  }
-
-  @SuppressWarnings("unchecked")
-  private Queue<WebResourceURIGenerator> getUriGeneratorQueue() {
-    if (uriGeneratorQueue == null) {
-      uriGeneratorQueue = (Queue<WebResourceURIGenerator>) context
-          .getAttribute(WebResourceURIGenerator.class.getName());
-    }
-    return uriGeneratorQueue;
   }
 
 }

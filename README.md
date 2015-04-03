@@ -6,29 +6,36 @@ webresource
 Webresources are small static files that are downloaded during rendering
 a website. E.g.: CSS, Javascript, images, ...
 
+## Basic usage
 
-## The Extender Component
+ - Install the org.everit.osgi.webresource module into your OSGi container
+ - Install the WebResourceServlet (that is provided as an OSGi service) into
+   your ServletContext
+ - Use CommonContextWebResourceURIGenerator to generate URIs that point to
+   WebResources. This class will pick up the URIGenerator(s) registered by
+   WebResourceServlet within the same ServletContext.
 
-There is an Extender component with the following configuration option:
+You can also install custom WebResourceURIGenerator implementations in the
+servletContext. In this case:
 
- - __alias:__ Coming from whiteboard pattern. This is the alias where the
-   registered servlet that serves the resources will listen.
+ - Get the Collection of WebResourceGenerators from the servlet context by
+   calling _WebResourceUtil.getUriGeneratorsOfServletContext(context);_ 
+ - Add your generator to the collection
 
+## Create WebResource packages
 
-## Capability
-
-The extender picks up every bundle that has the "everit.webresource"
-capability. The capability can have the following attributes:
+To make an OSGi bundle also a WebResource package the _everit.webresource_
+capability must be provided. The capability can have the following
+attributes:
 
  - __resourceFolder:__ The folder in the bundle where the resources
    are located
 
  - __libraryPrefix:__ A prefix that should be pasted in front of the
-   folder structure in the URL.
+   folder structure in the URL. E.g.: "foo/bar"
 
  - __version:__ Optional attribute that can define the version of the
    webresources. If not defined, the version of the bundle will be used.
-
 
 ## Version handling
 
@@ -38,10 +45,6 @@ request. Using ranges in the version expression is allowed. Examples:
  - /alias/jquery/jquer.js?webresource_version=2.1.0
  - /alias/jquery/jquer.js?webresource_version=[2.1.0,3)
 
-
-## WebResourceLocator
-
-Not implemented yet
 
 ## Cache
 
@@ -71,4 +74,4 @@ of the webresource file.
    Luckily Felix and Equinox has OSGi 6 support now.
  - __Servlet 3.1:__ _WebResourceUtil_ writes the content of the WebResources
    using asynchronous IO if possible.  
- - Java 8: Many of the features of Java 8 is used (time, optional, ...)
+ - __Java 8__: Many of the features of Java 8 is used (time, optional, ...)
