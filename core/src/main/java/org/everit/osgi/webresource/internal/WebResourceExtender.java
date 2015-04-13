@@ -180,7 +180,8 @@ public class WebResourceExtender implements BundleActivator {
         resourceContainer, resourceContainer);
     Dictionary<String, Object> serviceProps = new Hashtable<>();
     serviceProps.put("felix.webconsole.label", "everit-webresources");
-    serviceProps.put("felix.webconsole.title", "Everit Webresource");
+    serviceProps.put("felix.webconsole.category", "Everit");
+    serviceProps.put("felix.webconsole.title", "Webresources");
     serviceProps.put(Constants.SERVICE_DESCRIPTION, "Everit WebResource WebConsole plugin");
     pluginSR = bundleContext.registerService(Servlet.class, webConsolePlugin, serviceProps);
   }
