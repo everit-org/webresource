@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
@@ -45,11 +44,26 @@ import org.everit.osgi.webresource.util.WebResourceUtil;
  */
 public class WebResourceServlet implements Servlet {
 
-  private final AtomicInteger initCount = new AtomicInteger();
+  /**
+   * The context that must be the same in each {@link Servlet#init(ServletConfig)} call.
+   */
+  private static class Context {
+
+    public final ServletContext servletContext;
+
+    public final String servletName;
+
+    public Context(final ServletContext servletContext, final String servletName) {
+      this.servletContext = servletContext;
+      this.servletName = servletName;
+    }
+  }
+
+  private Context context;
 
   private ServletConfig servletConfig;
 
-  private WebResourceURIGenerator uriGenerator;
+  private WebResourceServletURIGenerator uriGenerator;
 
   private final WebResourceContainer webResourceContainer;
 
@@ -59,12 +73,6 @@ public class WebResourceServlet implements Servlet {
 
   @Override
   public void destroy() {
-    if (initCount.decrementAndGet() < 0) {
-      initCount.incrementAndGet();
-      throw new IllegalStateException(
-          "WebResource servlet was destroyed more times than it was initialized");
-    }
-
     ConcurrentLinkedQueue<WebResourceURIGenerator> uriGenerators = getOrCreateURIGeneratorQueue();
     uriGenerators.remove(uriGenerator);
   }
@@ -96,36 +104,47 @@ public class WebResourceServlet implements Servlet {
 
   @Override
   public void init(final ServletConfig config) throws ServletException {
-    if (initCount.incrementAndGet() > 1) {
-      initCount.decrementAndGet();
-      throw new IllegalStateException(
-          "WebResource servlet instance cannot be initialized more than once.");
-    }
-
     this.servletConfig = config;
     try {
 
       String servletName = config.getServletName();
       Objects.requireNonNull(servletName, "Servlet name must not be null!");
+
+      if (context != null && !Objects.equals(context.servletName, servletName)) {
+        throw new IllegalStateException(
+            "The same WebResource servlet instance was initialized with different servlet names");
+      }
+
       ServletContext servletContext = config.getServletContext();
       if (servletContext != null) {
+        if (context != null && !Objects.equals(context.servletContext, servletContext)) {
+          throw new IllegalStateException("The same WebResource servlet instance"
+              + " was initialized with different servlet contexts");
+        }
+
         String contextPath = servletContext.getContextPath();
         ServletRegistration servletRegistration = servletContext
             .getServletRegistration(servletName);
         Collection<String> mappings = servletRegistration.getMappings();
         if (mappings.size() > 0) {
           String mapping = mappings.iterator().next();
-          uriGenerator = new WebResourceServletURIGenerator(webResourceContainer, contextPath,
-              mapping);
+          if (uriGenerator == null) {
+            uriGenerator = new WebResourceServletURIGenerator(webResourceContainer, contextPath,
+                mapping);
+            getOrCreateURIGeneratorQueue().add(uriGenerator);
+          } else {
+            uriGenerator.update(contextPath, mapping);
+          }
 
-          ConcurrentLinkedQueue<WebResourceURIGenerator> uriGeneratorQueue =
-              getOrCreateURIGeneratorQueue();
+        } else if (uriGenerator != null) {
+          getOrCreateURIGeneratorQueue().remove(uriGenerator);
+          uriGenerator = null;
 
-          uriGeneratorQueue.add(uriGenerator);
         }
+        context = new Context(servletContext, servletName);
+
       }
     } catch (RuntimeException e) {
-      initCount.decrementAndGet();
       throw e;
     }
   }

@@ -16,6 +16,9 @@
 package org.everit.osgi.webresource.internal;
 
 import java.util.Optional;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.everit.osgi.webresource.WebResource;
 import org.everit.osgi.webresource.WebResourceContainer;
@@ -26,9 +29,11 @@ import org.everit.osgi.webresource.WebResourceURIGenerator;
  */
 public class WebResourceServletURIGenerator implements WebResourceURIGenerator {
 
-  private final String pathPrefix;
+  private String pathPrefix;
 
-  private final String pathSuffix;
+  private String pathSuffix;
+
+  private ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
 
   private final WebResourceContainer webResourceContainer;
 
@@ -46,6 +51,59 @@ public class WebResourceServletURIGenerator implements WebResourceURIGenerator {
       final String contextPath,
       final String urlPattern) {
     this.webResourceContainer = webResourceContainer;
+    update(contextPath, urlPattern);
+  }
+
+  @Override
+  public Optional<String> generateURI(final String lib, final String file,
+      final Optional<String> versionRange) {
+
+    Optional<WebResource> webResource = webResourceContainer.findWebResource(lib, file,
+        versionRange);
+
+    if (!webResource.isPresent()) {
+      return Optional.empty();
+    }
+
+    ReadLock readLock = rwLock.readLock();
+    readLock.lock();
+    String lPathPrefix;
+    String lPathSuffix;
+    try {
+      lPathPrefix = pathPrefix;
+      lPathSuffix = pathSuffix;
+    } finally {
+      readLock.unlock();
+    }
+
+    StringBuilder sb = new StringBuilder(lPathPrefix).append("/");
+    if (lib != null && lib.length() > 0) {
+      sb.append(lib).append("/");
+    }
+    sb.append(file);
+
+    sb.append(lPathSuffix);
+
+    char parameterSeparator = '?';
+    if (versionRange.isPresent() && versionRange.get().length() > 0) {
+      parameterSeparator = '&';
+      sb.append(parameterSeparator).append("version=").append(versionRange);
+    }
+
+    sb.append(parameterSeparator).append("t=").append(webResource.get().getLastModified());
+
+    return Optional.of(sb.toString());
+  }
+
+  /**
+   * Updates the uri resolver with the new context path and url pattern.
+   *
+   * @param contextPath
+   *          The contextPath of that the {@link WebResourceServlet} was initialized with.
+   * @param urlPattern
+   *          The url pattern that the {@link WebResourceServlet} was initialized with.
+   */
+  void update(final String contextPath, final String urlPattern) {
     String pathPrefixResult = contextPath;
 
     if (pathPrefixResult.endsWith("/")) {
@@ -71,38 +129,13 @@ public class WebResourceServletURIGenerator implements WebResourceURIGenerator {
         pathPrefixResult += "/" + patternForPrefix;
       }
     }
-    pathPrefix = pathPrefixResult;
-    pathSuffix = pathSuffixResult;
-
-  }
-
-  @Override
-  public Optional<String> generateURI(final String lib, final String file,
-      final Optional<String> versionRange) {
-
-    Optional<WebResource> webResource = webResourceContainer.findWebResource(lib, file,
-        versionRange);
-
-    if (!webResource.isPresent()) {
-      return Optional.empty();
+    WriteLock writeLock = rwLock.writeLock();
+    writeLock.lock();
+    try {
+      pathPrefix = pathPrefixResult;
+      pathSuffix = pathSuffixResult;
+    } finally {
+      writeLock.unlock();
     }
-
-    StringBuilder sb = new StringBuilder(pathPrefix).append("/");
-    if (lib != null && lib.length() > 0) {
-      sb.append(lib).append("/");
-    }
-    sb.append(file);
-
-    sb.append(pathSuffix);
-
-    char parameterSeparator = '?';
-    if (versionRange.isPresent() && versionRange.get().length() > 0) {
-      parameterSeparator = '&';
-      sb.append(parameterSeparator).append("version=").append(versionRange);
-    }
-
-    sb.append(parameterSeparator).append("t=").append(webResource.get().getLastModified());
-
-    return Optional.of(sb.toString());
   }
 }
