@@ -130,6 +130,6 @@ public class WebResourceTest {
   public void testURIGeneratorForNonExistentWebResource() {
     WebResourceURIGenerator uriGenerator = resolveURIGenerator();
     Optional<String> uri = uriGenerator.generateURI("foo/bar/css", "main.css", Optional.empty());
-    Assert.assertTrue(uri.isPresent());
+    Assert.assertFalse(uri.isPresent());
   }
 }
