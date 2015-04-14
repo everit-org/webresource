@@ -75,6 +75,8 @@ public class WebResourceServlet implements Servlet {
   public void destroy() {
     ConcurrentLinkedQueue<WebResourceURIGenerator> uriGenerators = getOrCreateURIGeneratorQueue();
     uriGenerators.remove(uriGenerator);
+    uriGenerator = null;
+    context = null;
   }
 
   private ConcurrentLinkedQueue<WebResourceURIGenerator> getOrCreateURIGeneratorQueue() {
