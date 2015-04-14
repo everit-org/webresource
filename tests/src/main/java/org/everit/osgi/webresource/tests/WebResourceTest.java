@@ -119,17 +119,17 @@ public class WebResourceTest {
   }
 
   @Test
+  @TestDuringDevelopment
   public void testURIGeneratorForExistingWebResource() {
     WebResourceURIGenerator uriGenerator = resolveURIGenerator();
-    Optional<String> uri = uriGenerator.generateURI("nonexistent", "nonexistent", Optional.empty());
-    Assert.assertFalse(uri.isPresent());
+    Optional<String> uri = uriGenerator.generateURI("foo/bar/css", "main.css", Optional.empty());
+    Assert.assertTrue(uri.isPresent());
   }
 
   @Test
-  @TestDuringDevelopment
   public void testURIGeneratorForNonExistentWebResource() {
     WebResourceURIGenerator uriGenerator = resolveURIGenerator();
-    Optional<String> uri = uriGenerator.generateURI("foo/bar/css", "main.css", Optional.empty());
+    Optional<String> uri = uriGenerator.generateURI("nonexistent", "nonexistent", Optional.empty());
     Assert.assertFalse(uri.isPresent());
   }
 }
