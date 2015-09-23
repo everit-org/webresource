@@ -127,6 +127,7 @@ public class WebResourceTest {
   }
 
   @Test
+  @TestDuringDevelopment
   public void testURIGeneratorForNonExistentWebResource() {
     WebResourceURIGenerator uriGenerator = resolveURIGenerator();
     Optional<String> uri = uriGenerator.generateURI("nonexistent", "nonexistent", Optional.empty());
