@@ -50,7 +50,7 @@
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
             <Import-Package>*</Import-Package>
             <Export-Package />
-            <Provide-Capability>everit.webresource;resourceFolder=/META-INF/resources/lib1;libraryPrefix=foo/bar,everit.webresource;resourceFolder=/META-INF/resources/lib2</Provide-Capability>
+            <Provide-Capability>everit.webresource;resourceFolder=/META-INF/resources/lib1;libraryPrefix=foo/bar,everit.webresource;resourceFolder=/META-INF/resources/lib2;version:Version=2.0.0</Provide-Capability>
             <EOSGi-TestNum>2</EOSGi-TestNum>
           </instructions>
         </configuration>
@@ -71,7 +71,6 @@
       <plugin>
         <groupId>org.everit.osgi.dev</groupId>
         <artifactId>eosgi-maven-plugin</artifactId>
-        <version>3.1.0</version>
         <executions>
           <execution>
             <id>integration-test</id>
@@ -87,8 +86,21 @@
           </jacoco>
           <environments>
             <environment>
-              <id>equinoxtest</id>
+              <id>webresourceEquinox</id>
               <framework>equinox</framework>
+              <systemProperties>
+                <org.osgi.service.http.port>$${ if (System.getenv("EOSGI_STOP_AFTER_TESTS").equals("true")) "0";
+                  else "4848"; }</org.osgi.service.http.port>
+                <org.osgi.service.http.port.secure>-1</org.osgi.service.http.port.secure>
+              </systemProperties>
+              <vmOptions>
+                <vmOption>-Xdebug</vmOption>
+                <vmOption>-Xrunjdwp:server=y,transport=dt_socket,address=9009,suspend=n</vmOption>
+              </vmOptions>
+            </environment>
+            <environment>
+              <id>webresourceFelix</id>
+              <framework>felix</framework>
               <systemProperties>
                 <org.osgi.service.http.port>$${ if (System.getenv("EOSGI_STOP_AFTER_TESTS").equals("true")) "0";
                   else "4848"; }</org.osgi.service.http.port>

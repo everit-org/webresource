@@ -65,10 +65,7 @@ public class WebResourceExtender implements BundleActivator {
 
         String resourceFolder = (String) attributes
             .get(WebResourceConstants.CAPABILITY_ATTRIBUTE_RESOURCE_FOLDER);
-        String versionString = (String) attributes
-            .get(WebResourceConstants.CAPABILITY_ATTRIBUTE_VERSION);
-        Version version = (versionString != null) ? new Version(versionString) : bundle
-            .getVersion();
+        Version version = resolveVersion(capability);
 
         if (resourceFolder == null) {
           System.err.print("WARNING: Capability attribute "
@@ -146,6 +143,21 @@ public class WebResourceExtender implements BundleActivator {
         libraryPrefix = libraryPrefix.substring(0, libraryPrefix.length() - 1);
       }
       return libraryPrefix;
+    }
+
+    private Version resolveVersion(final BundleCapability capability) {
+      Map<String, Object> attributes = capability.getAttributes();
+      Object versionObject = attributes.get(WebResourceConstants.CAPABILITY_ATTRIBUTE_VERSION);
+      if (versionObject == null) {
+        return capability.getRevision().getBundle().getVersion();
+      }
+
+      if (versionObject instanceof Version) {
+        return (Version) versionObject;
+      } else {
+        return new Version(versionObject.toString());
+      }
+
     }
   }
 
