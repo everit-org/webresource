@@ -47,7 +47,7 @@ public class CommonContextWebResourceURIGenerator implements WebResourceURIGener
 
     String result = null;
     Iterator<WebResourceURIGenerator> iterator = uriGeneratorQueue.iterator();
-    while (result == null && iterator.hasNext()) {
+    while ((result == null) && iterator.hasNext()) {
       Object nextItemObject = iterator.next();
       if (nextItemObject instanceof WebResourceURIGenerator) {
         // It might happen that WebResourceURIGenerator from different version of the API are placed

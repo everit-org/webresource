@@ -109,8 +109,8 @@ public class WebResourceImpl implements WebResource {
     this.fileName = fileName;
     this.version = version;
     this.library = library;
-    this.etag = resolveETag();
-    this.lastModifiedRFC1123GMT = resolveLastModifiedRFC1123();
+    etag = resolveETag();
+    lastModifiedRFC1123GMT = resolveLastModifiedRFC1123();
   }
 
   public void destroy() {
@@ -317,7 +317,7 @@ public class WebResourceImpl implements WebResource {
   }
 
   private String resolveLastModifiedRFC1123() {
-    Instant instant = new Date(this.lastModified).toInstant();
+    Instant instant = new Date(lastModified).toInstant();
     ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(instant, ZoneId.of("GMT"));
     return DateTimeFormatter.RFC_1123_DATE_TIME.format(zonedDateTime);
   }

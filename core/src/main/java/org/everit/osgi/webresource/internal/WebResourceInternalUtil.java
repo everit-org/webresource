@@ -16,7 +16,7 @@
 package org.everit.osgi.webresource.internal;
 
 /**
- * Util functions for internal usage.
+ * Utility functions for internal usage.
  */
 public final class WebResourceInternalUtil {
 

@@ -25,7 +25,11 @@ import javax.servlet.http.HttpServletRequest;
  */
 public enum ContentEncoding {
 
-  DEFLATE("deflate"), GZIP("gzip"), RAW("raw");
+  DEFLATE("deflate"),
+
+  GZIP("gzip"),
+
+  RAW("raw");
 
   /**
    * Resolves the best supported content encoding from the request.
@@ -52,7 +56,7 @@ public enum ContentEncoding {
 
   private final String headerValue;
 
-  private ContentEncoding(final String headerValue) {
+  ContentEncoding(final String headerValue) {
     this.headerValue = headerValue;
   }
 

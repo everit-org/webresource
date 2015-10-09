@@ -53,7 +53,7 @@ public class WebResourceServlet implements Servlet {
 
     public final String servletName;
 
-    public Context(final ServletContext servletContext, final String servletName) {
+    Context(final ServletContext servletContext, final String servletName) {
       this.servletContext = servletContext;
       this.servletName = servletName;
     }
@@ -106,20 +106,20 @@ public class WebResourceServlet implements Servlet {
 
   @Override
   public void init(final ServletConfig config) throws ServletException {
-    this.servletConfig = config;
+    servletConfig = config;
     try {
 
       String servletName = config.getServletName();
       Objects.requireNonNull(servletName, "Servlet name must not be null!");
 
-      if (context != null && !Objects.equals(context.servletName, servletName)) {
+      if ((context != null) && !Objects.equals(context.servletName, servletName)) {
         throw new IllegalStateException(
             "The same WebResource servlet instance was initialized with different servlet names");
       }
 
       ServletContext servletContext = config.getServletContext();
       if (servletContext != null) {
-        if (context != null && !Objects.equals(context.servletContext, servletContext)) {
+        if ((context != null) && !Objects.equals(context.servletContext, servletContext)) {
           throw new IllegalStateException("The same WebResource servlet instance"
               + " was initialized with different servlet contexts");
         }

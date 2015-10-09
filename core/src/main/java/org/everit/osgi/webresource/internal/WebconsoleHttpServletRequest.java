@@ -20,8 +20,8 @@ import javax.servlet.http.HttpServletRequestWrapper;
 
 /**
  * Wraps the original {@link HttpServletRequest} to make it work within the webconsole plugin.
- * PathInfo must be reduced with webconsole plugin url prefix and async must be disabled due to <a
- * href="https://issues.apache.org/jira/browse/FELIX-4840">FELIX-4840</a> bug.
+ * PathInfo must be reduced with webconsole plugin url prefix and async must be disabled due to
+ * <a href="https://issues.apache.org/jira/browse/FELIX-4840">FELIX-4840</a> bug.
  */
 public class WebconsoleHttpServletRequest extends HttpServletRequestWrapper {
 

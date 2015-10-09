@@ -18,93 +18,46 @@ package org.everit.osgi.webresource.tests;
 import java.util.Optional;
 import java.util.Queue;
 
-import javax.servlet.Servlet;
+import javax.servlet.ServletContext;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.ConfigurationPolicy;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Properties;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.Service;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.everit.osgi.dev.testrunner.TestDuringDevelopment;
 import org.everit.osgi.dev.testrunner.TestRunnerConstants;
+import org.everit.osgi.ecm.annotation.Component;
+import org.everit.osgi.ecm.annotation.ConfigurationPolicy;
+import org.everit.osgi.ecm.annotation.Service;
+import org.everit.osgi.ecm.annotation.ServiceRef;
+import org.everit.osgi.ecm.annotation.attribute.StringAttribute;
+import org.everit.osgi.ecm.annotation.attribute.StringAttributes;
+import org.everit.osgi.ecm.extender.ECMExtenderConstants;
 import org.everit.osgi.webresource.WebResourceURIGenerator;
 import org.everit.osgi.webresource.util.WebResourceUtil;
 import org.junit.Assert;
 import org.junit.Test;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
+
+import aQute.bnd.annotation.headers.ProvideCapability;
 
 /**
  * Test component for WebResource.
  */
-@Component(immediate = true, policy = ConfigurationPolicy.OPTIONAL)
-@Properties({
-    @Property(name = TestRunnerConstants.SERVICE_PROPERTY_TESTRUNNER_ENGINE_TYPE, value = "junit4"),
-    @Property(name = TestRunnerConstants.SERVICE_PROPERTY_TEST_ID, value = "WebResourceTest")
-})
+@Component(configurationPolicy = ConfigurationPolicy.OPTIONAL)
+@ProvideCapability(ns = ECMExtenderConstants.CAPABILITY_NS_COMPONENT,
+    value = ECMExtenderConstants.CAPABILITY_ATTR_CLASS + "=${@class}")
+@StringAttributes({
+    @StringAttribute(attributeId = TestRunnerConstants.SERVICE_PROPERTY_TESTRUNNER_ENGINE_TYPE,
+        defaultValue = "junit4"),
+    @StringAttribute(attributeId = TestRunnerConstants.SERVICE_PROPERTY_TEST_ID,
+        defaultValue = "FormAuthenticationServletTest") })
 @Service(value = WebResourceTest.class)
 public class WebResourceTest {
 
-  private Server server;
-
-  private ServletContextHandler servletContextHandler;
-
-  @Reference(bind = "setWebResourceServlet", target = "(" + Constants.SERVICE_DESCRIPTION
-      + "=Everit WebResource Servlet)")
-  private Servlet webResourceServlet;
-
-  /**
-   * Activate method of the component that starts a jetty server and registers an instance of
-   * WebResourceServlet on it.
-   */
-  @Activate
-  public void activate(final BundleContext context) {
-    server = new Server(0);
-    ContextHandlerCollection contextCollection = new ContextHandlerCollection();
-    server.setHandler(contextCollection);
-
-    servletContextHandler = new ServletContextHandler();
-    servletContextHandler.setContextPath("/testcontext");
-    contextCollection.addHandler(servletContextHandler);
-    servletContextHandler.addServlet(new ServletHolder("testServlet", webResourceServlet), "/*");
-
-    try {
-      server.start();
-    } catch (Exception e) {
-      try {
-        server.stop();
-      } catch (Exception e1) {
-        e.addSuppressed(e1);
-      }
-      if (e instanceof RuntimeException) {
-        throw (RuntimeException) e;
-      }
-      throw new RuntimeException(e);
-    }
-  }
-
-  /**
-   * Deactivate method of the component that stops the jetty server.
-   */
-  @Deactivate
-  public void deactivate() {
-    try {
-      server.stop();
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
+  private ServletContext servletContext;
 
   private WebResourceURIGenerator resolveURIGenerator() {
     Object uriGeneratorAttribute = WebResourceUtil
-        .getUriGeneratorsOfServletContext(servletContextHandler.getServletContext());
+        .getUriGeneratorsOfServletContext(servletContext);
 
     Assert.assertNotNull(uriGeneratorAttribute);
 
@@ -114,12 +67,26 @@ public class WebResourceTest {
     return queue.peek();
   }
 
-  public void setWebResourceServlet(final Servlet webResourceServlet) {
-    this.webResourceServlet = webResourceServlet;
+  /**
+   * Setter for the {@link #servletContext} retrieved from the Jetty Server.
+   */
+  @ServiceRef(defaultValue = "")
+  public void setServer(final Server server) {
+
+    ContextHandlerCollection contextHandlerCollection =
+        (ContextHandlerCollection) server.getHandler();
+
+    Handler[] handlers = contextHandlerCollection.getHandlers();
+    for (Handler handler : handlers) {
+      if (handler instanceof ServletContextHandler) {
+        servletContext = ((ServletContextHandler) handler).getServletContext();
+        return;
+      }
+    }
+    throw new IllegalArgumentException("Failed to retrieve the ServletContext");
   }
 
   @Test
-  @TestDuringDevelopment
   public void testURIGeneratorForExistingWebResource() {
     WebResourceURIGenerator uriGenerator = resolveURIGenerator();
     Optional<String> uri = uriGenerator.generateURI("foo/bar/css", "main.css", Optional.empty());
@@ -127,7 +94,6 @@ public class WebResourceTest {
   }
 
   @Test
-  @TestDuringDevelopment
   public void testURIGeneratorForNonExistentWebResource() {
     WebResourceURIGenerator uriGenerator = resolveURIGenerator();
     Optional<String> uri = uriGenerator.generateURI("nonexistent", "nonexistent", Optional.empty());

@@ -54,13 +54,10 @@ public class WebResourceWebConsolePlugin implements Servlet {
 
   @Override
   public void destroy() {
-    // TODO Auto-generated method stub
-
   }
 
   @Override
   public ServletConfig getServletConfig() {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -79,13 +76,11 @@ public class WebResourceWebConsolePlugin implements Servlet {
 
   @Override
   public void init(final ServletConfig config) throws ServletException {
-    // TODO Auto-generated method stub
-
   }
 
   private void respondPluginPage(final ServletResponse resp,
       final String pluginRootURI)
-      throws IOException {
+          throws IOException {
     PrintWriter writer = resp.getWriter();
     writer.write("<table class='content'>");
 

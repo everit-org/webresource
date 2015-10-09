@@ -23,7 +23,7 @@ import java.util.Properties;
 import org.everit.osgi.webresource.util.WebResourceUtil;
 
 /**
- * Simple util to derive the content type of a resource based on its extension and the built-in
+ * Simple utility to derive the content type of a resource based on its extension and the built-in
  * properties file of the module.
  */
 public final class ContentTypeUtil {

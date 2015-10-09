@@ -77,7 +77,7 @@ public class WebResourceServletURIGenerator implements WebResourceURIGenerator {
     }
 
     StringBuilder sb = new StringBuilder(lPathPrefix).append("/");
-    if (lib != null && lib.length() > 0) {
+    if ((lib != null) && (lib.length() > 0)) {
       sb.append(lib).append("/");
     }
     sb.append(file);
@@ -85,7 +85,7 @@ public class WebResourceServletURIGenerator implements WebResourceURIGenerator {
     sb.append(lPathSuffix);
 
     char parameterSeparator = '?';
-    if (versionRange.isPresent() && versionRange.get().length() > 0) {
+    if (versionRange.isPresent() && (versionRange.get().length() > 0)) {
       parameterSeparator = '&';
       sb.append(parameterSeparator).append("version=").append(versionRange);
     }

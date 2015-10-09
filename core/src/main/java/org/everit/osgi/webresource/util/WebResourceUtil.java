@@ -138,7 +138,7 @@ public final class WebResourceUtil {
     int lastIndexOfSlash = pathInfo.lastIndexOf('/');
 
     if (lastIndexOfSlash == (pathInfo.length() - 1)) {
-      http404(resp);
+      WebResourceUtil.http404(resp);
       return;
     }
 
@@ -155,11 +155,11 @@ public final class WebResourceUtil {
         resourceName, Optional.ofNullable(version));
 
     if (!optionalWebResource.isPresent()) {
-      http404(resp);
+      WebResourceUtil.http404(resp);
       return;
     }
 
-    writeWebResourceToResponse(optionalWebResource.get(), req, resp);
+    WebResourceUtil.writeWebResourceToResponse(optionalWebResource.get(), req, resp);
   }
 
   /**
@@ -236,15 +236,15 @@ public final class WebResourceUtil {
    */
   public static void writeWebResourceToResponse(final WebResource webResource,
       final HttpServletRequest req, final HttpServletResponse resp)
-      throws IOException {
+          throws IOException {
 
     Objects.requireNonNull(req);
     Objects.requireNonNull(resp);
     Objects.requireNonNull(webResource);
 
-    ContentEncoding contentEncoding = writeResponseHead(req, resp, webResource);
+    ContentEncoding contentEncoding = WebResourceUtil.writeResponseHead(req, resp, webResource);
 
-    if (etagMatchFound(req, webResource)) {
+    if (WebResourceUtil.etagMatchFound(req, webResource)) {
       resp.setStatus(HTTP_NOT_MODIFIED);
       return;
     }
@@ -260,7 +260,7 @@ public final class WebResourceUtil {
       out.setWriteListener(new InputStreamBasedWriteListener(async, in));
     } else {
       ServletOutputStream out = resp.getOutputStream();
-      writeToOutputStreamFromInputStream(in, out);
+      WebResourceUtil.writeToOutputStreamFromInputStream(in, out);
     }
   }
 

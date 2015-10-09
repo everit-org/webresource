@@ -48,7 +48,7 @@ public class WebResourceExtender implements BundleActivator {
    */
   private class WebResourceBundleTracker extends BundleTracker<Bundle> {
 
-    public WebResourceBundleTracker(final BundleContext context) {
+    WebResourceBundleTracker(final BundleContext context) {
       super(context, Bundle.ACTIVE, null);
     }
 
@@ -219,7 +219,7 @@ public class WebResourceExtender implements BundleActivator {
 
   @Override
   public void start(final BundleContext context) throws Exception {
-    this.bundleContext = context;
+    bundleContext = context;
 
     registerWebResourceContainer();
 
