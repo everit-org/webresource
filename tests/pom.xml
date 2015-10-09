@@ -29,7 +29,7 @@
 
   <groupId>org.everit.web</groupId>
   <artifactId>org.everit.web.webresource.tests</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.0</version>
 
   <packaging>bundle</packaging>
   <name>Everit - WebResource Tests</name>
@@ -175,11 +175,6 @@
       <artifactId>org.everit.jetty.server.ecm</artifactId>
       <version>1.0.0</version>
     </dependency>
-<!--     <dependency> -->
-<!--       <groupId>org.apache.felix</groupId> -->
-<!--       <artifactId>org.apache.felix.http.whiteboard</artifactId> -->
-<!--       <version>2.3.0</version> -->
-<!--     </dependency> -->
 
     <dependency>
       <groupId>org.apache.felix</groupId>
