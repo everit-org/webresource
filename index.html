@@ -73,7 +73,8 @@
 
       <div class="bs-docs-featurette cookbook">
         <h2 id="introduction" class="bs-docs-featurette-title">Introduction</h2>
-        <p>Webresources are small static files that are downloaded during rendering a website. E.g.: CSS, Javascript, images, ...</p>
+        <p>Webresources are small static files that are downloaded during rendering a website.
+          E.g.: CSS, Javascript, images, ...</p>
       </div>
       <hr class="featurette-divider">
 
@@ -81,12 +82,14 @@
         <h2 id="basic_usage" class="bs-docs-featurette-title">Basic usage</h2>
         <ul>
           <li>Install the org.everit.osgi.webresource module into your OSGi container.</li>
-          <li>Install the WebResourceServlet (that is provided as an OSGi service) into your ServletContext.</li>
-          <li>Use CommonContextWebResourceURIGenerator to generate URIs that point to WebResources. This class will pick up the URIGenerator(s) registered by WebResourceServlet within the same ServletContext.</li>
+          <li>Install the WebResourceServlet (that is provided as an OSGi service) into your
+            ServletContext.</li>
+          <li>Use CommonContextWebResourceURIGenerator to generate URIs that point to
+            WebResources. This class will pick up the URIGenerator(s) registered by
+            WebResourceServlet within the same ServletContext.</li>
         </ul>
-        <p>
-          You can also install custom WebResourceURIGenerator implementations in the servletContext. In this case:
-        </p>
+        <p>You can also install custom WebResourceURIGenerator implementations in the
+          servletContext. In this case:</p>
         <ul>
           <li>Get the Collection of WebResourceGenerators from the servlet context by calling <i>WebResourceUtil.getUriGeneratorsOfServletContext(context);</i></li>
           <li>Add your generator to the collection</li>
@@ -95,14 +98,18 @@
       <hr class="featurette-divider">
 
       <div class="bs-docs-featurette cookbook">
-        <h2 id="create_webresource_packages" class="bs-docs-featurette-title">Create WebResource packages</h2>
+        <h2 id="create_webresource_packages" class="bs-docs-featurette-title">Create
+          WebResource packages</h2>
         <p>
-          To make an OSGi bundle also a WebResource package the <i>everit.webresource</i> capability must be provided. The capability can have the following attributes:
+          To make an OSGi bundle also a WebResource package the <i>everit.webresource</i> capability
+          must be provided. The capability can have the following attributes:
         </p>
         <ul>
           <li><b>resourceFolder</b>: The folder in the bundle where the resources are located.</li>
-          <li><b>libraryPrefix</b>: A prefix that should be pasted in front of the folder structure in the URL. E.g.: "foo/bar"</li>
-          <li><b>version</b>: Optional attribute that can define the version of the webresources. If not defined, the version of the bundle will be used.</li>
+          <li><b>libraryPrefix</b>: A prefix that should be pasted in front of the folder
+            structure in the URL. E.g.: "foo/bar"</li>
+          <li><b>version</b>: Optional attribute that can define the version of the
+            webresources. If not defined, the version of the bundle will be used.</li>
         </ul>
       </div>
       <hr class="featurette-divider">
@@ -110,7 +117,8 @@
       <div class="bs-docs-featurette cookbook">
         <h2 id="version_handling" class="bs-docs-featurette-title">Version handling</h2>
         <p>
-          The <i>webresource_version</i> can be specified as a parameter of the servlet request. Using ranges in the version expression is allowed. Examples:
+          The <i>webresource_version</i> can be specified as a parameter of the servlet request.
+          Using ranges in the version expression is allowed. Examples:
         </p>
         <ul>
           <li>/alias/jquery/jquer.js?webresource_version=2.1.0</li>
@@ -121,41 +129,39 @@
 
       <div class="bs-docs-featurette cookbook">
         <h2 id="cache" class="bs-docs-featurette-title">Cache</h2>
-        <p>
-          There is a primitive, in-memory cache. The GZIP, Deflate and RAW data is stored in cache after the first request. When a bundle is stopped, all webresources are removed from the cache that came from that bundle.
-        </p>
+        <p>There is a primitive, in-memory cache. The GZIP, Deflate and RAW data is stored in
+          cache after the first request. When a bundle is stopped, all webresources are removed from
+          the cache that came from that bundle.</p>
       </div>
       <hr class="featurette-divider">
 
       <div class="bs-docs-featurette cookbook">
         <h2 id="webconsole_plugin" class="bs-docs-featurette-title">WebConsole Plugin</h2>
-        <p>
-          There is a WebConsole plugin that is registered when the Extender component is started. It shows the registered webresources and the state of the caches.
-        </p>
+        <p>There is a WebConsole plugin that is registered when the Extender component is
+          started. It shows the registered webresources and the state of the caches.</p>
       </div>
       <hr class="featurette-divider">
 
       <div class="bs-docs-featurette cookbook">
         <h2 id="content_encoding" class="bs-docs-featurette-title">Content-Encoding</h2>
-        <p>
-          GZIP, Deflate and RAW content encodings are supported.
-        </p>
+        <p>GZIP, Deflate and RAW content encodings are supported.</p>
       </div>
       <hr class="featurette-divider">
 
       <div class="bs-docs-featurette cookbook">
         <h2 id="etag_support" class="bs-docs-featurette-title">ETag support</h2>
-        <p>
-          SHA-256 hash of the RAW content is concatenated with the last modification date of the webresource file.
-        </p>
+        <p>SHA-256 hash of the RAW content is concatenated with the last modification date of
+          the webresource file.</p>
       </div>
       <hr class="featurette-divider">
 
       <div class="bs-docs-featurette cookbook">
         <h2 id="minimum_requirements" class="bs-docs-featurette-title">Minimum requirements</h2>
         <ul>
-          <li><b>OSGi 6</b>: WebResourceServlet is registered with prototype service scope. Luckily Felix and Equinox has OSGi 6 support now.</li>
-          <li><b>Servlet 3.1</b>: <i>WebResourceUtil</i> writes the content of the WebResources using asynchronous IO if possible.</li>
+          <li><b>OSGi 6</b>: WebResourceServlet is registered with prototype service scope.
+            Luckily Felix and Equinox has OSGi 6 support now.</li>
+          <li><b>Servlet 3.1</b>: <i>WebResourceUtil</i> writes the content of the WebResources
+            using asynchronous IO if possible.</li>
           <li><b>Java 8</b>: Many of the features of Java 8 is used (time, optional, ...)</li>
         </ul>
       </div>
