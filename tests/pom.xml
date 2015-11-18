@@ -166,9 +166,9 @@
     </dependency>
 
     <dependency>
-      <groupId>org.everit.osgi</groupId>
-      <artifactId>org.everit.osgi.jetty.boot</artifactId>
-      <version>1.0.2</version>
+      <groupId>org.everit.jetty</groupId>
+      <artifactId>org.everit.jetty.osgi.boot</artifactId>
+      <version>1.0.0</version>
     </dependency>
     <dependency>
       <groupId>org.everit.jetty</groupId>
