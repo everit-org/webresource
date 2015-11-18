@@ -1,4 +1,4 @@
 webresource
 ===========
 
-Documentation: http://wwww.everit.org/webresource
+Documentation: http://www.everit.org/webresource
