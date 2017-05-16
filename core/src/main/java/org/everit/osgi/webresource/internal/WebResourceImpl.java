@@ -32,7 +32,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -317,7 +316,7 @@ public class WebResourceImpl implements WebResource {
   }
 
   private String resolveLastModifiedRFC1123() {
-    Instant instant = new Date(lastModified).toInstant();
+    Instant instant = Instant.ofEpochMilli(lastModified);
     ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(instant, ZoneId.of("GMT"));
     return DateTimeFormatter.RFC_1123_DATE_TIME.format(zonedDateTime);
   }

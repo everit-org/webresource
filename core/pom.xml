@@ -29,7 +29,7 @@
 
   <groupId>org.everit.web</groupId>
   <artifactId>org.everit.web.webresource</artifactId>
-  <version>1.0.1</version>
+  <version>1.0.2</version>
 
   <packaging>bundle</packaging>
 
