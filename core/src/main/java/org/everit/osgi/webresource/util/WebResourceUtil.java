@@ -22,6 +22,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletContext;
@@ -48,6 +50,8 @@ public final class WebResourceUtil {
    */
   private static final class InputStreamBasedWriteListener implements WriteListener {
 
+    private static final Logger LOGGER = Logger.getLogger("org.everit.osgi.webresource.stream");
+
     private final AsyncContext async;
 
     byte[] buf = new byte[BUFFER_SIZE];
@@ -65,7 +69,7 @@ public final class WebResourceUtil {
       if (servletContext != null) {
         servletContext.log("Async exception", t);
       } else {
-        t.printStackTrace(System.err);
+        LOGGER.log(Level.WARNING, "Async exception", t);
       }
       async.complete();
     }
