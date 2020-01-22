@@ -61,6 +61,6 @@ public enum ContentEncoding {
   }
 
   public String getHeaderValue() {
-    return headerValue;
+    return this.headerValue;
   }
 }

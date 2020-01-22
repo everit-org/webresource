@@ -80,7 +80,7 @@ public class WebResourceWebConsolePlugin implements Servlet {
 
   private void respondPluginPage(final ServletResponse resp,
       final String pluginRootURI)
-          throws IOException {
+      throws IOException {
     PrintWriter writer = resp.getWriter();
     writer.write("<table class='content'>");
 
@@ -91,7 +91,7 @@ public class WebResourceWebConsolePlugin implements Servlet {
     int rawCacheSizeSum = 0;
     int deflateCacheSizeSum = 0;
     int gzipCacheSizeSum = 0;
-    Map<String, LibContainer> libContainersByName = resourceContainer.getLibContainersByName();
+    Map<String, LibContainer> libContainersByName = this.resourceContainer.getLibContainersByName();
     DecimalFormat format = new DecimalFormat();
     for (Entry<String, LibContainer> libContainersByNameEntry : libContainersByName.entrySet()) {
       String library = libContainersByNameEntry.getKey();
@@ -115,7 +115,7 @@ public class WebResourceWebConsolePlugin implements Servlet {
             writer.write("<tr><td class='content'>" + library + "</td>");
 
             writer.write("<td class='content'><a href=\"" + pluginRootURI + "/" + library
-                + (("".equals(library)) ? "" : "/")
+                + ("".equals(library) ? "" : "/")
                 + fileName + ".resource?" + WebResourceConstants.REQUEST_PARAM_VERSION_RANGE + "=["
                 + version.toString() + "," + version.toString() + "]\">" + fileName + "</a></td>");
 
@@ -126,15 +126,15 @@ public class WebResourceWebConsolePlugin implements Servlet {
             Map<ContentEncoding, Integer> cacheState = resource.getCacheState();
 
             Integer rawCacheSize = cacheState.get(ContentEncoding.RAW);
-            rawCacheSizeSum += (rawCacheSize == null) ? 0 : rawCacheSize;
+            rawCacheSizeSum += rawCacheSize == null ? 0 : rawCacheSize;
             writer.write("<td class='content'>" + getStringValue(rawCacheSize) + "</td>");
 
             Integer deflateCacheSize = cacheState.get(ContentEncoding.DEFLATE);
-            deflateCacheSizeSum += (deflateCacheSize == null) ? 0 : deflateCacheSize;
+            deflateCacheSizeSum += deflateCacheSize == null ? 0 : deflateCacheSize;
             writer.write("<td class='content'>" + getStringValue(deflateCacheSize) + "</td>");
 
             Integer gzipCacheSize = cacheState.get(ContentEncoding.GZIP);
-            gzipCacheSizeSum += (gzipCacheSize == null) ? 0 : gzipCacheSize;
+            gzipCacheSizeSum += gzipCacheSize == null ? 0 : gzipCacheSize;
             writer.write("<td class='content'>" + getStringValue(gzipCacheSize) + "</td></tr>");
           }
         }
@@ -171,7 +171,7 @@ public class WebResourceWebConsolePlugin implements Servlet {
       respondPluginPage(res, pluginRootURI);
     } else if (requestURI.endsWith(".resource")) {
       WebconsoleHttpServletRequest noAsyncRequest = new WebconsoleHttpServletRequest(httpReq);
-      WebResourceUtil.findWebResourceAndWriteResponse(webResourceContainer, noAsyncRequest,
+      WebResourceUtil.findWebResourceAndWriteResponse(this.webResourceContainer, noAsyncRequest,
           httpRes);
     } else {
       httpRes.sendError(WebResourceConstants.HTTP_NOT_FOUND);

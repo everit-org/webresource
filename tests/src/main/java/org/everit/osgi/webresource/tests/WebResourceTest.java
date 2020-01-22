@@ -57,7 +57,7 @@ public class WebResourceTest {
 
   private WebResourceURIGenerator resolveURIGenerator() {
     Object uriGeneratorAttribute = WebResourceUtil
-        .getUriGeneratorsOfServletContext(servletContext);
+        .getUriGeneratorsOfServletContext(this.servletContext);
 
     Assert.assertNotNull(uriGeneratorAttribute);
 
@@ -79,7 +79,7 @@ public class WebResourceTest {
     Handler[] handlers = contextHandlerCollection.getHandlers();
     for (Handler handler : handlers) {
       if (handler instanceof ServletContextHandler) {
-        servletContext = ((ServletContextHandler) handler).getServletContext();
+        this.servletContext = ((ServletContextHandler) handler).getServletContext();
         return;
       }
     }

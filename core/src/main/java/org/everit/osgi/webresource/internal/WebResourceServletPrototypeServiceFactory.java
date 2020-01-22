@@ -37,7 +37,7 @@ public class WebResourceServletPrototypeServiceFactory implements PrototypeServi
 
   @Override
   public Servlet getService(final Bundle bundle, final ServiceRegistration<Servlet> registration) {
-    return new WebResourceServlet(webResourceContainer);
+    return new WebResourceServlet(this.webResourceContainer);
   }
 
   @Override

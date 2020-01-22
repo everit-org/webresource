@@ -58,26 +58,26 @@ public class WebResourceServletURIGenerator implements WebResourceURIGenerator {
   public Optional<String> generateURI(final String lib, final String file,
       final Optional<String> versionRange) {
 
-    Optional<WebResource> webResource = webResourceContainer.findWebResource(lib, file,
+    Optional<WebResource> webResource = this.webResourceContainer.findWebResource(lib, file,
         versionRange);
 
     if (!webResource.isPresent()) {
       return Optional.empty();
     }
 
-    ReadLock readLock = rwLock.readLock();
+    ReadLock readLock = this.rwLock.readLock();
     readLock.lock();
     String lPathPrefix;
     String lPathSuffix;
     try {
-      lPathPrefix = pathPrefix;
-      lPathSuffix = pathSuffix;
+      lPathPrefix = this.pathPrefix;
+      lPathSuffix = this.pathSuffix;
     } finally {
       readLock.unlock();
     }
 
     StringBuilder sb = new StringBuilder(lPathPrefix).append("/");
-    if ((lib != null) && (lib.length() > 0)) {
+    if (lib != null && lib.length() > 0) {
       sb.append(lib).append("/");
     }
     sb.append(file);
@@ -85,7 +85,7 @@ public class WebResourceServletURIGenerator implements WebResourceURIGenerator {
     sb.append(lPathSuffix);
 
     char parameterSeparator = '?';
-    if (versionRange.isPresent() && (versionRange.get().length() > 0)) {
+    if (versionRange.isPresent() && versionRange.get().length() > 0) {
       parameterSeparator = '&';
       sb.append(parameterSeparator).append("version=").append(versionRange);
     }
@@ -129,11 +129,11 @@ public class WebResourceServletURIGenerator implements WebResourceURIGenerator {
         pathPrefixResult += "/" + patternForPrefix;
       }
     }
-    WriteLock writeLock = rwLock.writeLock();
+    WriteLock writeLock = this.rwLock.writeLock();
     writeLock.lock();
     try {
-      pathPrefix = pathPrefixResult;
-      pathSuffix = pathSuffixResult;
+      this.pathPrefix = pathPrefixResult;
+      this.pathSuffix = pathSuffixResult;
     } finally {
       writeLock.unlock();
     }

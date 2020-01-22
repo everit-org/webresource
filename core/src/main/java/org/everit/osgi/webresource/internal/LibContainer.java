@@ -45,11 +45,11 @@ public class LibContainer {
    */
   public synchronized void addWebResource(final WebResourceImpl resource) {
     String fileName = resource.getFileName();
-    NavigableMap<Version, Set<WebResourceImpl>> resourcesByVersion = versionedResourcesByName
+    NavigableMap<Version, Set<WebResourceImpl>> resourcesByVersion = this.versionedResourcesByName
         .get(fileName);
     if (resourcesByVersion == null) {
       resourcesByVersion = new ConcurrentSkipListMap<>();
-      versionedResourcesByName.put(fileName, resourcesByVersion);
+      this.versionedResourcesByName.put(fileName, resourcesByVersion);
     }
     Version version = resource.getVersion();
     Set<WebResourceImpl> resources = resourcesByVersion.get(version);
@@ -72,13 +72,13 @@ public class LibContainer {
    */
   public Optional<WebResource> findWebResource(final String resourceName,
       final VersionRange versionRange) {
-    NavigableMap<Version, Set<WebResourceImpl>> resourceByVersion = versionedResourcesByName
+    NavigableMap<Version, Set<WebResourceImpl>> resourceByVersion = this.versionedResourcesByName
         .get(resourceName);
-    if ((resourceByVersion == null) || (resourceByVersion.size() == 0)) {
+    if (resourceByVersion == null || resourceByVersion.size() == 0) {
       // There is no resource by the name
       return Optional.empty();
     }
-    if ((versionRange == null) || versionRange.getCeiling().equals(VersionRange.INFINITE_VERSION)) {
+    if (versionRange == null || versionRange.getCeiling().equals(VersionRange.INFINITE_VERSION)) {
       // Selecting the highest version of the resource
       Optional<WebResource> optionalWebResource =
           selectResourceWithHighestVersion(resourceByVersion);
@@ -109,7 +109,7 @@ public class LibContainer {
     Entry<Version, Set<WebResourceImpl>> potentialEntry =
         resolvePotentialEntriesByVersionRange(versionRange, resourceByVersion, ceilingVersion);
 
-    if ((potentialEntry != null) && versionRange.contains(potentialEntry.getKey())) {
+    if (potentialEntry != null && versionRange.contains(potentialEntry.getKey())) {
       result = selectResourceFromSet(potentialEntry.getValue());
     }
 
@@ -117,11 +117,11 @@ public class LibContainer {
   }
 
   Map<String, NavigableMap<Version, Set<WebResourceImpl>>> getVersionedResourcesByName() {
-    return versionedResourcesByName;
+    return this.versionedResourcesByName;
   }
 
   public boolean isEmpty() {
-    return versionedResourcesByName.size() == 0;
+    return this.versionedResourcesByName.size() == 0;
   }
 
   /**
@@ -132,7 +132,7 @@ public class LibContainer {
    */
   public synchronized void removeWebResource(final WebResource resource) {
     String fileName = resource.getFileName();
-    NavigableMap<Version, Set<WebResourceImpl>> resourcesByVersion = versionedResourcesByName
+    NavigableMap<Version, Set<WebResourceImpl>> resourcesByVersion = this.versionedResourcesByName
         .get(fileName);
     Version version = resource.getVersion();
     Set<WebResourceImpl> resources = resourcesByVersion.get(version);
@@ -140,7 +140,7 @@ public class LibContainer {
     if (resources.size() == 0) {
       resourcesByVersion.remove(version);
       if (resourcesByVersion.size() == 0) {
-        versionedResourcesByName.remove(fileName);
+        this.versionedResourcesByName.remove(fileName);
       }
     }
   }

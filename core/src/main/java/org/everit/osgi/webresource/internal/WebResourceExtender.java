@@ -90,7 +90,7 @@ public class WebResourceExtender implements BundleActivator {
               WebResourceImpl webResource = new WebResourceImpl(bundle, library, fileName,
                   resourceURL,
                   version, contentType);
-              resourceContainer.addWebResource(webResource);
+              WebResourceExtender.this.resourceContainer.addWebResource(webResource);
               webResourceAdded = true;
             }
           }
@@ -125,7 +125,7 @@ public class WebResourceExtender implements BundleActivator {
 
     @Override
     public void removedBundle(final Bundle bundle, final BundleEvent event, final Bundle object) {
-      resourceContainer.removeBundle(bundle);
+      WebResourceExtender.this.resourceContainer.removeBundle(bundle);
     }
 
     private String resolveNormalizedLibraryPrefix(final BundleCapability capability,
@@ -176,33 +176,34 @@ public class WebResourceExtender implements BundleActivator {
   @SuppressWarnings("unchecked")
   private void registerServletFactory() {
     WebResourceServletPrototypeServiceFactory webResourceServletFactory =
-        new WebResourceServletPrototypeServiceFactory(resourceContainer);
+        new WebResourceServletPrototypeServiceFactory(this.resourceContainer);
 
     Dictionary<String, Object> serviceProps = new Hashtable<>();
     serviceProps.put(Constants.SERVICE_DESCRIPTION, "Everit WebResource Servlet");
     serviceProps.put("async-supported", true);
 
-    servletFactorySR = (ServiceRegistration<Servlet>) bundleContext.registerService(
+    this.servletFactorySR = (ServiceRegistration<Servlet>) this.bundleContext.registerService(
         new String[] { Servlet.class.getName(), WebResourceServlet.class.getName() },
         webResourceServletFactory, serviceProps);
   }
 
   private void registerWebConsolePlugin() {
     WebResourceWebConsolePlugin webConsolePlugin = new WebResourceWebConsolePlugin(
-        resourceContainer, resourceContainer);
+        this.resourceContainer, this.resourceContainer);
     Dictionary<String, Object> serviceProps = new Hashtable<>();
     serviceProps.put("felix.webconsole.label", "everit-webresources");
     serviceProps.put("felix.webconsole.category", "Everit");
     serviceProps.put("felix.webconsole.title", "Webresources");
     serviceProps.put(Constants.SERVICE_DESCRIPTION, "Everit WebResource WebConsole plugin");
-    pluginSR = bundleContext.registerService(Servlet.class, webConsolePlugin, serviceProps);
+    this.pluginSR =
+        this.bundleContext.registerService(Servlet.class, webConsolePlugin, serviceProps);
   }
 
   private void registerWebResourceContainer() {
     Dictionary<String, Object> serviceProps = new Hashtable<>();
     serviceProps.put(Constants.SERVICE_DESCRIPTION, "Everit WebResource Container (read-only)");
-    resourceContainerSR = bundleContext
-        .registerService(WebResourceContainer.class, resourceContainer, serviceProps);
+    this.resourceContainerSR = this.bundleContext
+        .registerService(WebResourceContainer.class, this.resourceContainer, serviceProps);
   }
 
   private String resolveFileName(final URL resourceURL) {
@@ -219,12 +220,12 @@ public class WebResourceExtender implements BundleActivator {
 
   @Override
   public void start(final BundleContext context) throws Exception {
-    bundleContext = context;
+    this.bundleContext = context;
 
     registerWebResourceContainer();
 
-    webResourceTracker = new WebResourceBundleTracker(context);
-    webResourceTracker.open();
+    this.webResourceTracker = new WebResourceBundleTracker(context);
+    this.webResourceTracker.open();
 
     registerServletFactory();
 
@@ -233,15 +234,15 @@ public class WebResourceExtender implements BundleActivator {
 
   @Override
   public void stop(final BundleContext context) throws Exception {
-    webResourceTracker.close();
-    if (resourceContainerSR != null) {
-      resourceContainerSR.unregister();
+    this.webResourceTracker.close();
+    if (this.resourceContainerSR != null) {
+      this.resourceContainerSR.unregister();
     }
-    if (pluginSR != null) {
-      pluginSR.unregister();
+    if (this.pluginSR != null) {
+      this.pluginSR.unregister();
     }
-    if (servletFactorySR != null) {
-      servletFactorySR.unregister();
+    if (this.servletFactorySR != null) {
+      this.servletFactorySR.unregister();
     }
   }
 }

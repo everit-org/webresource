@@ -74,9 +74,9 @@ public class WebResourceServlet implements Servlet {
   @Override
   public void destroy() {
     ConcurrentLinkedQueue<WebResourceURIGenerator> uriGenerators = getOrCreateURIGeneratorQueue();
-    uriGenerators.remove(uriGenerator);
-    uriGenerator = null;
-    context = null;
+    uriGenerators.remove(this.uriGenerator);
+    this.uriGenerator = null;
+    this.context = null;
   }
 
   private ConcurrentLinkedQueue<WebResourceURIGenerator> getOrCreateURIGeneratorQueue() {
@@ -96,7 +96,7 @@ public class WebResourceServlet implements Servlet {
 
   @Override
   public ServletConfig getServletConfig() {
-    return servletConfig;
+    return this.servletConfig;
   }
 
   @Override
@@ -106,20 +106,20 @@ public class WebResourceServlet implements Servlet {
 
   @Override
   public void init(final ServletConfig config) throws ServletException {
-    servletConfig = config;
+    this.servletConfig = config;
     try {
 
       String servletName = config.getServletName();
       Objects.requireNonNull(servletName, "Servlet name must not be null!");
 
-      if ((context != null) && !Objects.equals(context.servletName, servletName)) {
+      if (this.context != null && !Objects.equals(this.context.servletName, servletName)) {
         throw new IllegalStateException(
             "The same WebResource servlet instance was initialized with different servlet names");
       }
 
       ServletContext servletContext = config.getServletContext();
       if (servletContext != null) {
-        if ((context != null) && !Objects.equals(context.servletContext, servletContext)) {
+        if (this.context != null && !Objects.equals(this.context.servletContext, servletContext)) {
           throw new IllegalStateException("The same WebResource servlet instance"
               + " was initialized with different servlet contexts");
         }
@@ -130,20 +130,21 @@ public class WebResourceServlet implements Servlet {
         Collection<String> mappings = servletRegistration.getMappings();
         if (mappings.size() > 0) {
           String mapping = mappings.iterator().next();
-          if (uriGenerator == null) {
-            uriGenerator = new WebResourceServletURIGenerator(webResourceContainer, contextPath,
-                mapping);
-            getOrCreateURIGeneratorQueue().add(uriGenerator);
+          if (this.uriGenerator == null) {
+            this.uriGenerator =
+                new WebResourceServletURIGenerator(this.webResourceContainer, contextPath,
+                    mapping);
+            getOrCreateURIGeneratorQueue().add(this.uriGenerator);
           } else {
-            uriGenerator.update(contextPath, mapping);
+            this.uriGenerator.update(contextPath, mapping);
           }
 
-        } else if (uriGenerator != null) {
-          getOrCreateURIGeneratorQueue().remove(uriGenerator);
-          uriGenerator = null;
+        } else if (this.uriGenerator != null) {
+          getOrCreateURIGeneratorQueue().remove(this.uriGenerator);
+          this.uriGenerator = null;
 
         }
-        context = new Context(servletContext, servletName);
+        this.context = new Context(servletContext, servletName);
 
       }
     } catch (RuntimeException e) {
@@ -158,6 +159,6 @@ public class WebResourceServlet implements Servlet {
     HttpServletRequest httpReq = WebResourceInternalUtil.cast(req);
     HttpServletResponse httpRes = WebResourceInternalUtil.cast(res);
 
-    WebResourceUtil.findWebResourceAndWriteResponse(webResourceContainer, httpReq, httpRes);
+    WebResourceUtil.findWebResourceAndWriteResponse(this.webResourceContainer, httpReq, httpRes);
   }
 }

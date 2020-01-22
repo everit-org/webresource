@@ -30,7 +30,7 @@ public interface WebResourceURIGenerator {
    *          The library of the {@link WebResource}.
    * @param file
    *          The file name of the {@link WebResource}.
-   * @param version
+   * @param versionRange
    *          The version range expression that must the {@link WebResource#getVersion()} match or
    *          {@link Optional#empty()} if any version is accepted.
    * @return The URI that can be used to access the {@link WebResource} or {@link Optional#empty()}

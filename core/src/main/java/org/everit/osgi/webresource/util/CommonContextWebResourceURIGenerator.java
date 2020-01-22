@@ -34,20 +34,20 @@ public class CommonContextWebResourceURIGenerator implements WebResourceURIGener
   private final Collection<WebResourceURIGenerator> uriGeneratorQueue;
 
   public CommonContextWebResourceURIGenerator(final ServletContext context) {
-    uriGeneratorQueue = WebResourceUtil.getUriGeneratorsOfServletContext(context);
+    this.uriGeneratorQueue = WebResourceUtil.getUriGeneratorsOfServletContext(context);
   }
 
   @Override
   public Optional<String> generateURI(final String lib, final String file,
       final Optional<String> versionRange) {
 
-    if (uriGeneratorQueue == null) {
+    if (this.uriGeneratorQueue == null) {
       return Optional.empty();
     }
 
     String result = null;
-    Iterator<WebResourceURIGenerator> iterator = uriGeneratorQueue.iterator();
-    while ((result == null) && iterator.hasNext()) {
+    Iterator<WebResourceURIGenerator> iterator = this.uriGeneratorQueue.iterator();
+    while (result == null && iterator.hasNext()) {
       Object nextItemObject = iterator.next();
       if (nextItemObject instanceof WebResourceURIGenerator) {
         // It might happen that WebResourceURIGenerator from different version of the API are placed

@@ -45,18 +45,18 @@ public class WebResourceContainerImpl implements WebResourceContainer {
    */
   public synchronized void addWebResource(final WebResourceImpl webResource) {
     Bundle bundle = webResource.getBundle();
-    Set<WebResource> resources = webResourcesByBundles.get(bundle);
+    Set<WebResource> resources = this.webResourcesByBundles.get(bundle);
     if (resources == null) {
       resources = Collections.newSetFromMap(new ConcurrentHashMap<WebResource, Boolean>());
-      webResourcesByBundles.put(bundle, resources);
+      this.webResourcesByBundles.put(bundle, resources);
     }
     resources.add(webResource);
 
     String library = webResource.getLibrary();
-    LibContainer libContainer = libContainersByName.get(library);
+    LibContainer libContainer = this.libContainersByName.get(library);
     if (libContainer == null) {
       libContainer = new LibContainer();
-      libContainersByName.put(library, libContainer);
+      this.libContainersByName.put(library, libContainer);
     }
     libContainer.addWebResource(webResource);
   }
@@ -67,7 +67,7 @@ public class WebResourceContainerImpl implements WebResourceContainer {
     Objects.requireNonNull(lib, "WebResource library must not be null");
     Objects.requireNonNull(lib, "WebResource name must not be null");
 
-    LibContainer libContainer = libContainersByName.get(lib);
+    LibContainer libContainer = this.libContainersByName.get(lib);
     if (libContainer == null) {
       return Optional.empty();
     }
@@ -78,7 +78,7 @@ public class WebResourceContainerImpl implements WebResourceContainer {
   }
 
   Map<String, LibContainer> getLibContainersByName() {
-    return libContainersByName;
+    return this.libContainersByName;
   }
 
   /**
@@ -89,13 +89,13 @@ public class WebResourceContainerImpl implements WebResourceContainer {
    *          The {@link Bundle} whose {@link WebResource}s should be removed from the container.
    */
   public synchronized void removeBundle(final Bundle bundle) {
-    Set<WebResource> webResources = webResourcesByBundles.remove(bundle);
+    Set<WebResource> webResources = this.webResourcesByBundles.remove(bundle);
     for (WebResource webResource : webResources) {
       String library = webResource.getLibrary();
-      LibContainer libContainer = libContainersByName.get(library);
+      LibContainer libContainer = this.libContainersByName.get(library);
       libContainer.removeWebResource(webResource);
       if (libContainer.isEmpty()) {
-        libContainersByName.remove(library);
+        this.libContainersByName.remove(library);
       }
     }
   }

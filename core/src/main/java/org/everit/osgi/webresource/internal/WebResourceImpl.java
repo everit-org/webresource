@@ -55,7 +55,7 @@ public class WebResourceImpl implements WebResource {
   private final Bundle bundle;
 
   private final Map<ContentEncoding, byte[]> cache =
-      new ConcurrentHashMap<ContentEncoding, byte[]>();
+      new ConcurrentHashMap<>();
 
   private final String contentType;
 
@@ -99,8 +99,8 @@ public class WebResourceImpl implements WebResource {
     this.contentType = contentType;
     try {
       URLConnection urlConnection = resourceURL.openConnection();
-      lastModified = urlConnection.getLastModified();
-      rawLength = urlConnection.getContentLength();
+      this.lastModified = urlConnection.getLastModified();
+      this.rawLength = urlConnection.getContentLength();
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
@@ -108,16 +108,17 @@ public class WebResourceImpl implements WebResource {
     this.fileName = fileName;
     this.version = version;
     this.library = library;
-    etag = resolveETag();
-    lastModifiedRFC1123GMT = resolveLastModifiedRFC1123();
+    this.etag = resolveETag();
+    this.lastModifiedRFC1123GMT = resolveLastModifiedRFC1123();
   }
 
   public void destroy() {
-    cache.clear();
+    this.cache.clear();
   }
 
+  // CHECKSTYLE.OFF: CyclomaticComplexity
+  // CHECKSTYLE.OFF: NPathComplexity
   @Override
-  @Generated("eclipse")
   public boolean equals(final Object obj) {
     if (this == obj) {
       return true;
@@ -129,48 +130,50 @@ public class WebResourceImpl implements WebResource {
       return false;
     }
     WebResourceImpl other = (WebResourceImpl) obj;
-    if (bundle == null) {
+    if (this.bundle == null) {
       if (other.bundle != null) {
         return false;
       }
-    } else if (!bundle.equals(other.bundle)) {
+    } else if (!this.bundle.equals(other.bundle)) {
       return false;
     }
-    if (fileName == null) {
+    if (this.fileName == null) {
       if (other.fileName != null) {
         return false;
       }
-    } else if (!fileName.equals(other.fileName)) {
+    } else if (!this.fileName.equals(other.fileName)) {
       return false;
     }
-    if (library == null) {
+    if (this.library == null) {
       if (other.library != null) {
         return false;
       }
-    } else if (!library.equals(other.library)) {
+    } else if (!this.library.equals(other.library)) {
       return false;
     }
-    if (version == null) {
+    if (this.version == null) {
       if (other.version != null) {
         return false;
       }
-    } else if (!version.equals(other.version)) {
+    } else if (!this.version.equals(other.version)) {
       return false;
     }
     return true;
   }
+  // CHECKSTYLE.ON: CyclomaticComplexity
+  // CHECKSTYLE.ON: NPathComplexity
 
   @Override
   public Bundle getBundle() {
-    return bundle;
+    return this.bundle;
   }
 
   @Override
   public Map<ContentEncoding, Integer> getCacheState() {
-    Map<ContentEncoding, Integer> result = new HashMap<ContentEncoding, Integer>();
+    Map<ContentEncoding, Integer> result = new HashMap<>();
     ContentEncoding[] contentEncodings = ContentEncoding.values();
     for (ContentEncoding contentEncoding : contentEncodings) {
-      byte[] cachedData = cache.get(contentEncoding);
+      byte[] cachedData = this.cache.get(contentEncoding);
       if (cachedData != null) {
         result.put(contentEncoding, cachedData.length);
       }
@@ -179,7 +182,7 @@ public class WebResourceImpl implements WebResource {
   }
 
   private byte[] getContentData(final ContentEncoding contentEncoding) {
-    byte[] contentData = cache.get(contentEncoding);
+    byte[] contentData = this.cache.get(contentEncoding);
     if (contentData == null) {
       contentData = readContentIntoCache(contentEncoding);
     }
@@ -193,17 +196,17 @@ public class WebResourceImpl implements WebResource {
 
   @Override
   public String getContentType() {
-    return contentType;
+    return this.contentType;
   }
 
   @Override
   public String getETag() {
-    return etag;
+    return this.etag;
   }
 
   @Override
   public String getFileName() {
-    return fileName;
+    return this.fileName;
   }
 
   @Override
@@ -217,26 +220,26 @@ public class WebResourceImpl implements WebResource {
 
   @Override
   public long getLastModified() {
-    return lastModified;
+    return this.lastModified;
   }
 
   @Override
   public String getLastModifiedRFC1123GMT() {
-    return lastModifiedRFC1123GMT;
+    return this.lastModifiedRFC1123GMT;
   }
 
   @Override
   public String getLibrary() {
-    return library;
+    return this.library;
   }
 
   public int getRawLength() {
-    return rawLength;
+    return this.rawLength;
   }
 
   @Override
   public Version getVersion() {
-    return version;
+    return this.version;
   }
 
   @Override
@@ -244,10 +247,10 @@ public class WebResourceImpl implements WebResource {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = (prime * result) + ((bundle == null) ? 0 : bundle.hashCode());
-    result = (prime * result) + ((fileName == null) ? 0 : fileName.hashCode());
-    result = (prime * result) + ((library == null) ? 0 : library.hashCode());
-    result = (prime * result) + ((version == null) ? 0 : version.hashCode());
+    result = prime * result + (this.bundle == null ? 0 : this.bundle.hashCode());
+    result = prime * result + (this.fileName == null ? 0 : this.fileName.hashCode());
+    result = prime * result + (this.library == null ? 0 : this.library.hashCode());
+    result = prime * result + (this.version == null ? 0 : this.version.hashCode());
     return result;
   }
 
@@ -258,9 +261,9 @@ public class WebResourceImpl implements WebResource {
   }
 
   private synchronized byte[] readContentIntoCache(final ContentEncoding contentEncoding) {
-    byte[] contentData = cache.get(contentEncoding);
+    byte[] contentData = this.cache.get(contentEncoding);
     if (contentData == null) {
-      try (InputStream inputStream = resourceURL.openStream();) {
+      try (InputStream inputStream = this.resourceURL.openStream();) {
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         OutputStream out;
 
@@ -274,7 +277,7 @@ public class WebResourceImpl implements WebResource {
         } else {
           out = bout;
         }
-        byte[] buf = new byte[COPY_BUFFER_SIZE];
+        byte[] buf = new byte[WebResourceImpl.COPY_BUFFER_SIZE];
         int r = inputStream.read(buf);
         while (r > -1) {
           out.write(buf, 0, r);
@@ -282,7 +285,7 @@ public class WebResourceImpl implements WebResource {
         }
         out.close();
         contentData = bout.toByteArray();
-        cache.put(contentEncoding, contentData);
+        this.cache.put(contentEncoding, contentData);
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
@@ -291,14 +294,14 @@ public class WebResourceImpl implements WebResource {
   }
 
   private String resolveETag() {
-    try (InputStream in = resourceURL.openStream()) {
+    try (InputStream in = this.resourceURL.openStream()) {
       MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
 
       Charset defaultCharset = Charset.forName("UTF8");
-      messageDigest.update(library.getBytes(defaultCharset));
-      messageDigest.update(fileName.getBytes(defaultCharset));
-      messageDigest.update(version.toString().getBytes(defaultCharset));
-      byte[] buf = new byte[COPY_BUFFER_SIZE];
+      messageDigest.update(this.library.getBytes(defaultCharset));
+      messageDigest.update(this.fileName.getBytes(defaultCharset));
+      messageDigest.update(this.version.toString().getBytes(defaultCharset));
+      byte[] buf = new byte[WebResourceImpl.COPY_BUFFER_SIZE];
       int r = in.read(buf);
       while (r > -1) {
         messageDigest.update(buf, 0, r);
@@ -306,7 +309,7 @@ public class WebResourceImpl implements WebResource {
       }
       ByteArrayOutputStream bout = new ByteArrayOutputStream();
       bout.write(messageDigest.digest());
-      bout.write(longToBytes(lastModified));
+      bout.write(longToBytes(this.lastModified));
       return String.format("%x", new BigInteger(1, bout.toByteArray()));
     } catch (IOException e) {
       throw new UncheckedIOException(e);
@@ -316,7 +319,7 @@ public class WebResourceImpl implements WebResource {
   }
 
   private String resolveLastModifiedRFC1123() {
-    Instant instant = Instant.ofEpochMilli(lastModified);
+    Instant instant = Instant.ofEpochMilli(this.lastModified);
     ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(instant, ZoneId.of("GMT"));
     return DateTimeFormatter.RFC_1123_DATE_TIME.format(zonedDateTime);
   }

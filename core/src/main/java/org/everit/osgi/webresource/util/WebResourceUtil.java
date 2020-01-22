@@ -54,7 +54,7 @@ public final class WebResourceUtil {
 
     private final AsyncContext async;
 
-    byte[] buf = new byte[BUFFER_SIZE];
+    byte[] buf = new byte[WebResourceUtil.BUFFER_SIZE];
 
     private final InputStream in;
 
@@ -65,26 +65,26 @@ public final class WebResourceUtil {
 
     @Override
     public void onError(final Throwable t) {
-      ServletContext servletContext = async.getRequest().getServletContext();
+      ServletContext servletContext = this.async.getRequest().getServletContext();
       if (servletContext != null) {
         servletContext.log("Async exception", t);
       } else {
-        LOGGER.log(Level.WARNING, "Async exception", t);
+        InputStreamBasedWriteListener.LOGGER.log(Level.WARNING, "Async exception", t);
       }
-      async.complete();
+      this.async.complete();
     }
 
     @Override
     public void onWritePossible() throws IOException {
-      ServletOutputStream out = async.getResponse().getOutputStream();
+      ServletOutputStream out = this.async.getResponse().getOutputStream();
 
       while (out.isReady()) {
-        int r = in.read(buf);
+        int r = this.in.read(this.buf);
         if (r < 0) {
-          async.complete();
+          this.async.complete();
           return;
         }
-        out.write(buf, 0, r);
+        out.write(this.buf, 0, r);
       }
     }
   }
@@ -103,7 +103,7 @@ public final class WebResourceUtil {
     int i = 0;
     int n = etags.length;
     boolean matchFound = false;
-    while (!matchFound && (i < n)) {
+    while (!matchFound && i < n) {
       String etag = etags[i].trim();
       if (etag.equals('"' + webResource.getETag() + '"')) {
         matchFound = true;
@@ -141,7 +141,7 @@ public final class WebResourceUtil {
 
     int lastIndexOfSlash = pathInfo.lastIndexOf('/');
 
-    if (lastIndexOfSlash == (pathInfo.length() - 1)) {
+    if (lastIndexOfSlash == pathInfo.length() - 1) {
       WebResourceUtil.http404(resp);
       return;
     }
@@ -213,7 +213,7 @@ public final class WebResourceUtil {
   private static void writeToOutputStreamFromInputStream(final InputStream in,
       final ServletOutputStream out) throws IOException {
 
-    byte[] buffer = new byte[BUFFER_SIZE];
+    byte[] buffer = new byte[WebResourceUtil.BUFFER_SIZE];
     int r = in.read(buffer);
     while (r >= 0) {
       out.write(buffer, 0, r);
@@ -240,7 +240,7 @@ public final class WebResourceUtil {
    */
   public static void writeWebResourceToResponse(final WebResource webResource,
       final HttpServletRequest req, final HttpServletResponse resp)
-          throws IOException {
+      throws IOException {
 
     Objects.requireNonNull(req);
     Objects.requireNonNull(resp);
@@ -249,7 +249,7 @@ public final class WebResourceUtil {
     ContentEncoding contentEncoding = WebResourceUtil.writeResponseHead(req, resp, webResource);
 
     if (WebResourceUtil.etagMatchFound(req, webResource)) {
-      resp.setStatus(HTTP_NOT_MODIFIED);
+      resp.setStatus(WebResourceUtil.HTTP_NOT_MODIFIED);
       return;
     }
 

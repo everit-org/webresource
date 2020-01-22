@@ -36,7 +36,7 @@ public final class ContentTypeUtil {
     DEFAULT_CONTENT_TYPES = new Properties();
     try (InputStream inputStream = WebResourceUtil.class
         .getResourceAsStream("/META-INF/default-content-types.properties")) {
-      DEFAULT_CONTENT_TYPES.load(inputStream);
+      ContentTypeUtil.DEFAULT_CONTENT_TYPES.load(inputStream);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -54,21 +54,21 @@ public final class ContentTypeUtil {
     int lastIndexOfSlash = extension.lastIndexOf('/');
 
     if (lastIndexOfSlash > 0) {
-      if (lastIndexOfSlash < (extension.length() - 1)) {
+      if (lastIndexOfSlash < extension.length() - 1) {
         extension = extension.substring(lastIndexOfSlash + 1);
       } else {
-        return UNKNOWN_CONTENT_TYPE;
+        return ContentTypeUtil.UNKNOWN_CONTENT_TYPE;
       }
     }
 
     int indexOfExtensionSeparator = extension.indexOf('.');
     String contentType = null;
-    while ((indexOfExtensionSeparator >= 0) && (contentType == null)) {
-      if (indexOfExtensionSeparator == (extension.length() - 1)) {
-        contentType = UNKNOWN_CONTENT_TYPE;
+    while (indexOfExtensionSeparator >= 0 && contentType == null) {
+      if (indexOfExtensionSeparator == extension.length() - 1) {
+        contentType = ContentTypeUtil.UNKNOWN_CONTENT_TYPE;
       } else {
         extension = extension.substring(indexOfExtensionSeparator + 1);
-        contentType = DEFAULT_CONTENT_TYPES.getProperty(extension);
+        contentType = ContentTypeUtil.DEFAULT_CONTENT_TYPES.getProperty(extension);
         if (contentType == null) {
           indexOfExtensionSeparator = extension.indexOf('.');
         }
@@ -76,7 +76,7 @@ public final class ContentTypeUtil {
     }
 
     if (contentType == null) {
-      return UNKNOWN_CONTENT_TYPE;
+      return ContentTypeUtil.UNKNOWN_CONTENT_TYPE;
     } else {
       return contentType;
     }
